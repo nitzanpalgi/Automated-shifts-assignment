@@ -1,5 +1,5 @@
 from mip import Model, xsum, BINARY
-import datetime, calendar
+from functions import *
 
 
 def init_constraints(tasks, operators):
@@ -34,21 +34,10 @@ def task_overlap_constrains(mat, operators, tasks):
             constrains += xsum(
                 mat[operator.id][task.id] for task in tasks
                 if (task.start_time <= day <= task.end_time and
-                    is_operator_qualified(operator,task))) <= 1, \
+                    is_operator_qualified(operator, task))) <= 1, \
                           f'day-({day}) operator-({operator})'
 
     return constrains
-
-
-def is_operator_qualified(operator, task):
-    return True
-
-
-def get_days_in_current_month():
-    current_date = datetime.datetime.now()
-    year, month = current_date.year, current_date.month
-    num_days = calendar.monthrange(year, month)[1]
-    return [datetime.date(year, month, day) for day in range(1, num_days + 1)]
 
 
 if __name__ == "__main__":
