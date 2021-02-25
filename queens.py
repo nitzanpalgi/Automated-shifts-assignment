@@ -32,13 +32,7 @@ queens.optimize()
 
 if queens.num_solutions:
     stdout.write('\n')
-    print(queens.vars)
     for i, v in enumerate(queens.vars):
-        # stdout.write('O ' if v.x >= 0.99 else '. ')
-        #find the operator and the shift
-        if v.x>= 0.99:
-            
-            #find gain
-
+        stdout.write('O ' if v.x >= 0.99 else '. ')
         if i % n == n-1:
             stdout.write('\n')
