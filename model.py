@@ -15,7 +15,7 @@ def init_constraints(tasks, operators):
 
 
 def add_vars(shifts_model, operators, tasks):
-    return [shifts_model.add_var(f'x({i},{j})')
+    return [shifts_model.add_var(f'x({i},{j})', var_type=BINARY)
             for j, task in enumerate(tasks)
             for i, operator in enumerate(operators)
             if is_operator_qualified(operators, task)]
