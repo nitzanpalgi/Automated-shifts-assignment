@@ -63,7 +63,7 @@ def convert_to_readable_df(shifts_model, start_date, end_date, tasks, operators)
 
 
 def main():
-    DB_path = './DATA/DB.xlsx'
+    DB_path = '../DATA/DB.xlsx'
     tasks, operators = dataImporter.CSV_importer(DB_path)
     dfs = convert_to_readable_df("1/3/2021", "31/3/2021", tasks, operators)
     # by operator
