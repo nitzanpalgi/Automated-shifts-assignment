@@ -130,3 +130,7 @@ dmypy.json
 
 # pycharm
 .idea/
+
+
+#DB xlsx
+/data/~$DB.xlsx
