@@ -18,8 +18,9 @@ if __name__ == "__main__":
     print(time.time() - t)
     if shifts_model.num_solutions:
         print(f'objective value {shifts_model.objective_value}')
-        dfs = convert_to_readable_df(shifts_model, "1/3/2021", "31/3/2021", tasks, operators)
-        dfs[0].to_excel("./By operator.xlsx")
-        # by task
-        dfs[1].to_excel("./By task.xlsx")
-
+        operators_df, tasks_df = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
+        print("ANS is - ")
+        print(operators_df)
+        print(tasks_df)
+        # operators_df.to_excel("./output/operators_data.xlsx")
+        # tasks_df.to_excel("./output/tasks_data.xlsx")
