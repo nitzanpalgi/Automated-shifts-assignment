@@ -9,6 +9,8 @@ def init_constraints(tasks, operators):
 
     x_mat = add_vars(shifts_model, operators, tasks)
 
+    shifts_model.objective = maximize(xsum(task for operator in x_mat for task in operator.values()))
+
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
 
     # add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
