@@ -1,4 +1,4 @@
-from mip import Model, xsum, BINARY
+from mip import Model, xsum, BINARY, maximize
 from functions import *
 
 
@@ -8,11 +8,13 @@ def init_constraints(tasks, operators):
 
     shifts_model = Model()
 
-    mat = add_vars(shifts_model, operators, tasks)
+    x_mat = add_vars(shifts_model, operators, tasks)
+
+    shifts_model.objective = maximize(xsum(x for x in x_mat))
 
     # shifts_model += xsum()
 
-    shifts_model += all_tasks_are_assigned_constrains(mat, operators, tasks)
+    shifts_model += all_tasks_are_assigned_constrains(x_mat, operators, tasks)
 
 
 def add_vars(shifts_model, operators, tasks):
@@ -22,20 +24,21 @@ def add_vars(shifts_model, operators, tasks):
             if is_operator_qualified(operators, task)]
 
 
-def all_tasks_are_assigned_constrains(mat, operators, tasks):
-    return [(xsum(mat[operator.id][task.id] for operator in operators
+def all_tasks_are_assigned_constrains(x_mat, operators, tasks):
+    return [(xsum(x_mat[operator.id][task.id] for operator in operators
                   if is_operator_qualified(operator, task)) == 1, f'task({task})') for task in tasks]
 
 
-def task_overlap_constrains(mat, operators, tasks):
+def task_overlap_constrains(x_mat, operators, tasks):
     constrains = []
-    for day in get_days_in_current_month():
+    for task in tasks():
         for operator in operators:
             constrains += xsum(
-                mat[operator.id][task.id] for task in tasks
-                if (task.start_time <= day <= task.end_time and
+                x_mat[operator.id][task.id] for task_b in operators
+                if (is_task_overlapping(task, task_b) and
+                    task != task_b and
                     is_operator_qualified(operator, task))) <= 1, \
-                          f'day-({day}) operator-({operator})'
+                          f'overlapping-({operator},{task}))'
 
     return constrains
 
