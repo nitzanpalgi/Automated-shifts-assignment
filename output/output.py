@@ -69,9 +69,9 @@ def convert_to_readable_df(start_date, end_date, big_task_df, big_names_df):
 def main():
     dfs = convert_to_readable_df("1/3/2021", "31/3/2021")
     #by operator
-    dfs[0].to_excel("./output/by operator.xlsx")
+    dfs[0].to_excel("./Output/By operator.xlsx")
     #by task
-    dfs[1].to_excel("./output/by task.xlsx")
+    dfs[1].to_excel("./Output/By task.xlsx")
 
 
 
