@@ -6,21 +6,17 @@ def init_constraints(tasks, operators):
     numTasks = len(tasks)
     numPeople = len(operators)
     shifts_model = Model()
-
     x_mat = add_vars(shifts_model, operators, tasks)
-
-    shifts_model.objective = maximize(xsum(x for x in x_mat))
-
-    # shifts_model += xsum()
-
-    shifts_model += all_tasks_are_assigned_constrains(x_mat, operators, tasks)
+    print(x_mat)
+    # shifts_model.objective = maximize(xsum(x for x in x_mat))
+    # shifts_model += all_tasks_are_assigned_constrains(x_mat, operators, tasks)
 
 
 def add_vars(shifts_model, operators, tasks):
-    return [shifts_model.add_var(f'x({operator.id},{task.id})', var_type=BINARY)
+    return [shifts_model.add_var(f'x(o{o_index},t{t_index})', var_type=BINARY)
             for t_index, task in tasks.iterrows()
             for o_index, operator in operators.iterrows()
-            if is_operator_qualified(operators, task)]
+            if is_operator_qualified(operator, task)]
 
 
 def all_tasks_are_assigned_constrains(x_mat, operators, tasks):

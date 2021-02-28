@@ -3,7 +3,8 @@ import calendar
 
 
 def is_operator_qualified(operator, task):
-    return task.type in operator.qualified_tasks
+    if task['id'] is not None:
+        return task['id'] in operator['tasks available']
 
 
 def get_days_in_current_month():

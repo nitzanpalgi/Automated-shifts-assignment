@@ -25,7 +25,8 @@ def format_tasks_list():
     cost = [task[3] for task in tasks_list]
     Compatible = [task[4] for task in tasks_list]
     min_per_month = [task[5] for task in tasks_list]
-    tasks = pd.DataFrame({'start_time': start_time, 'end_time': end_time, 'name': name, 'cost': cost,
+    ids = [task[6] for task in tasks_list]
+    tasks = pd.DataFrame({'id': ids, 'start_time': start_time, 'end_time': end_time, 'name': name, 'cost': cost,
                           'Compatible': Compatible, 'min_per_month': min_per_month})
     return tasks
 
@@ -35,7 +36,7 @@ def Add_row_to_task_list(row_data, num_of_days, month, year):
         date_time_str = f'{year}-{month}-{day} {row_data["start-hour"]}'
         start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
         end_time = start_time + timedelta(hours=row_data['time'])
-        new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1]
+        new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1, row_data['id']]
         tasks_list.append(new_task)
 
 # Gets the path of the DB and return (tasks_df, operators_df) - 2 dataFrames
@@ -50,11 +51,12 @@ def CSV_importer(path):
         Add_row_to_task_list(row_data, NUM_OF_DAYS, current_month, current_year)
 
     tasks_df = format_tasks_list()
-    operators_df = pd.read_excel(path, encoding='ISO-8859-1', sheet_name="Operators")
+    operators_df = pd.read_excel(path, sheet_name="Operators")
     return tasks_df, operators_df
 
 
 if __name__ == '__main__':
-    tasks, operators = CSV_importer(PATH)
+    DB_PATH = '../DATA/DB.xlsx'
+    tasks, operators = CSV_importer(DB_PATH)
     print(tasks)
     print(operators)
