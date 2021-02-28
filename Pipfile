@@ -9,5 +9,9 @@ verify_ssl = true
 mip = "*"
 datetime = "*"
 pandas = "*"
+xlrd = "==1.2.0"
+xlwt = "*"
+openpyxl = "*"
+
 
 [requires]

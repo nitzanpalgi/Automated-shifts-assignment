@@ -1,8 +1,8 @@
-from model import *
-from Modules import dataImporter
+from model import init_constraints
+from Modules.dataImporter import CSV_importer
 
-DB_PATH = './DATA/DB.xlsx'
+DATA_PATH = 'DATA/DB.xlsx'
 
 if __name__ == "__main__":
-    tasks, operators = dataImporter.CSV_importer(DB_PATH)
+    tasks, operators = CSV_importer(DATA_PATH)
     init_constraints(tasks, operators)
