@@ -1,6 +1,8 @@
 from mip import Model, xsum, BINARY, maximize
 from functions import *
 
+from pandas import DataFrame
+
 
 def init_constraints(tasks, operators):
     numTasks = len(tasks)
@@ -17,11 +19,11 @@ def init_constraints(tasks, operators):
     shifts_model += all_tasks_are_assigned_constrains(x_mat, operators, tasks)
 
 
-def add_vars(shifts_model, operators, tasks):
-    return [shifts_model.add_var(f'x({operator.id},{task.id})', var_type=BINARY)
-            for task in tasks
-            for operator in operators
-            if is_operator_qualified(operators, task)]
+def add_vars(shifts_model, operators: DataFrame, tasks: DataFrame):
+    return [shifts_model.add_var(f'x({operator_id},{task_id})', var_type=BINARY)
+            for task_id, task in tasks.iterrows()
+            for operator_id, operator in operators.iterrows()
+            if is_operator_qualified(operator, task)]
 
 
 def all_tasks_are_assigned_constrains(x_mat, operators, tasks):
