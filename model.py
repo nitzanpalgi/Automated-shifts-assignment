@@ -16,7 +16,7 @@ def init_constraints(tasks_df, operators_df):
 
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
 
-    # add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
+    add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
 
     add_operator_capacity_constraint(shifts_model, x_mat, operators, tasks)
 
@@ -45,14 +45,12 @@ def add_all_tasks_are_assigned_constrains(model, x_mat, operators: DataFrame, ta
 
 
 def add_task_overlap_constrains(model, x_mat, operators: DataFrame, tasks: DataFrame):
-    for task_id, task in tasks:
+    for day in get_days_in_current_month():
+        relevant_tasks = [(task_id, task) for task_id, task in tasks if task["start_time"] <= day <= task["end_time"]]
         for operator_id, operator in operators:
             model += xsum(
-                x_mat[operator_id][task_id] for task_b_id, task_b in tasks
-                if (is_task_overlapping(task, task_b) and
-                    is_operator_qualified(operator, task))) <= 1, \
-                     f'overlapping-({operator_id},{task_id}))'
-            print(f'overlapping-({operator_id},{task_id}))')
+                x_mat[operator_id][task_id] for task_id, task in relevant_tasks
+                if is_operator_qualified(operator, task)) <= 1, f'overlapping-({operator_id},{day}))'
 
 
 def add_operator_capacity_constraint(model, x_mat, operators: DataFrame, tasks: DataFrame):
