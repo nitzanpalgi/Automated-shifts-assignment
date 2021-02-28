@@ -1,21 +1,8 @@
 import pandas as pd
 from datetime import timedelta, datetime
+from functions import get_days_in_current_month
 
-MONTH_TO_DAYS = {
-    1: 31,
-    2: 28,
-    3: 31,
-    4: 30,
-    5: 31,
-    6: 30,
-    7: 31,
-    8: 31,
-    9: 30,
-    10: 31,
-    11: 30,
-    12: 31
-}
-PATH = '../data/DB.xlsx'
+
 tasks_list = []
 
 # tasks_list ---> task_df
@@ -31,9 +18,9 @@ def format_tasks_list():
     return tasks
 
 # Handle row and add to task_list
-def Add_row_to_task_list(row_data, num_of_days, month, year):
-    for day in range(1, num_of_days + 1):
-        date_time_str = f'{year}-{month}-{day} {row_data["start-hour"]}'
+def Add_row_to_task_list(row_data):
+    for day in get_days_in_current_month():
+        date_time_str = f'{day} {row_data["start-hour"]}'
         start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
         end_time = start_time + timedelta(hours=row_data['time'])
         new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1]
@@ -41,21 +28,17 @@ def Add_row_to_task_list(row_data, num_of_days, month, year):
 
 # Gets the path of the DB and return (tasks_df, operators_df) - 2 dataFrames
 def CSV_importer(path):
-    current_month = (datetime.now().month + 1) % 12
-    current_year = datetime.now().year
-    current_year += 1 if current_month == 1 else 0
-    NUM_OF_DAYS = MONTH_TO_DAYS[current_month]
-
-    data = pd.read_excel(path, encoding='ISO-8859-1', sheet_name="Tasks")
+    data = pd.read_excel(path, sheet_name="Tasks")
     for index, row_data in data.iterrows():
-        Add_row_to_task_list(row_data, NUM_OF_DAYS, current_month, current_year)
+        Add_row_to_task_list(row_data)
 
     tasks_df = format_tasks_list()
-    operators_df = pd.read_excel(path, encoding='ISO-8859-1', sheet_name="Operators")
+    operators_df = pd.read_excel(path, sheet_name="Operators")
     return tasks_df, operators_df
 
 
 if __name__ == '__main__':
-    tasks, operators = CSV_importer(PATH)
+    DATA_PATH = '../data/DB.xlsx'
+    tasks, operators = CSV_importer(DATA_PATH)
     print(tasks)
     print(operators)
