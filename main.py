@@ -8,4 +8,3 @@ if __name__ == "__main__":
 
     shifts_model = init_constraints(tasks, operators)
     shifts_model.optimize()
-    print(12)
