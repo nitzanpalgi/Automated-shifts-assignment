@@ -54,11 +54,15 @@ def final_print(start_date, end_date, big_task_df, big_names_df):
             #cell is x,y
             cell_x = cell.split(",")[0]
             cell_y = cell.split(",")[1]
-            task_name = big_task_df.at(cell_x).name
-            operator_name= big_names_df.at(cell_y).name
+            task_name = big_task_df.at[cell_x,"name"]
+            task_start_time= big_task_df.at[cell_x,"start_time"]
+            task_start_time = datetime.datetime.strptime(task_start_time, "%d/%m/%Y")
+            operator_name= big_names_df.at[cell_y,"name"]
             #find the persons and shift and assign them in the dfs
+            op_df.at[operator_name,task_start_time]= task_name
+            task_df.at[task_name,task_start_time]=operator_name
             #print to excel
-            print('12')
+            return (op_df,task_df)
     # find gain
 
     # if i % n == n-1:
