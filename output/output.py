@@ -5,42 +5,32 @@ import openpyxl
 from mip import Model, xsum, BINARY
 import datetime
 from Modules import dataImporter
+from functions import *
 
-
-# datadframe for each operator as row
-def create_operators_dataframe(start_date, end_date):
-    data_df = pd.read_excel("./DATA/DB.xlsx", sheet_name=0)
-    df = pd.DataFrame(columns=data_df.name)
-    df.insert(0, "Date", [])
-    start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y")
-    end_date = datetime.datetime.strptime(end_date, "%d/%m/%Y")
-    delta = datetime.timedelta(days=1)
-    for i in range((end_date - start_date).days + 1):
-        df = df.append({"Date": start_date + i * delta}, ignore_index=True)
-    return df, data_df
+# dataframe for each operator as row
+def create_operators_dataframe(operators):
+    df = pd.DataFrame(columns=operators.name)
+    for date in get_days_in_current_month():
+        df = df.append({"Date": date}, ignore_index=True)
+    print(df)
+    return df
 
 
 # dataframe for each task as a row
-def create_task_dataframe(start_date, end_date):
-    data_df = pd.read_excel("./DATA/DB.xlsx", sheet_name=1)
+def create_task_dataframe(DB_path):
+    data_df = pd.read_excel(DB_path, sheet_name='Tasks')
     df = pd.DataFrame(columns=data_df.name)
-    df.insert(0, "Date", [])
-    start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y")
-    end_date = datetime.datetime.strptime(end_date, "%d/%m/%Y")
-    delta = datetime.timedelta(days=1)
-    for i in range((end_date - start_date).days + 1):
-        df = df.append({"Date": start_date + i * delta}, ignore_index=True)
-    return df, data_df
+    for date in get_days_in_current_month():
+        df = df.append({"Date": date}, ignore_index=True)
+    print(df)
+    return df
 
 
-# converts binary mastix to dfs by operator and by task
-def convert_to_readable_df(shifts_model, start_date, end_date, tasks, operators):
-    op_df = create_operators_dataframe(start_date, end_date)
-    # data_op_df = op_df[1]
-    op_df = op_df[0]
-    task_df = create_task_dataframe(start_date, end_date)
-    # data_task_df = task_df[1]
-    task_df = task_df[0]
+# converts binary matrix to dfs by operator and by task
+def convert_to_readable_df(shifts_model, start_date, end_date, tasks, operators, DB_path):
+    operators_df = create_operators_dataframe(operators)
+    tasks_df = create_task_dataframe(DB_path)
+
     # needs to get the shifts model
     for i, v in enumerate(shifts_model.vars):
         # find the operator and the shift
@@ -56,20 +46,21 @@ def convert_to_readable_df(shifts_model, start_date, end_date, tasks, operators)
                 task_start_time, "%d/%m/%Y")
             operator_name = operators.at[cell_y, "name"]
             # find the persons and shift and assign them in the dfs
-            op_df.at[operator_name, task_start_time] = task_name
-            task_df.at[task_name, task_start_time] = operator_name
-            return (op_df, task_df)
-    # find gain
+            operators_df.at[operator_name, task_start_time] = task_name
+            tasks_df.at[task_name, task_start_time] = operator_name
+    return operators_df, tasks_df
 
 
 def main():
-    DB_path = './DATA/DB.xlsx'
+    shifts_model = {}
+    DB_path = '../DATA/DB.xlsx'
     tasks, operators = dataImporter.CSV_importer(DB_path)
-    dfs = convert_to_readable_df("1/3/2021", "31/3/2021", tasks, operators)
+    operators_df, tasks_df = convert_to_readable_df(shifts_model, "1/3/2021", "31/3/2021", tasks, operators, DB_path)
+
     # by operator
-    dfs[0].to_excel("./By operator.xlsx")
+    operators_df.to_excel("./operators_data.xlsx")
     # by task
-    dfs[1].to_excel("./By task.xlsx")
+    tasks_df.to_excel("./tasks_data.xlsx")
 
 
 if __name__ == "__main__":
