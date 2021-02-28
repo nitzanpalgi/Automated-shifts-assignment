@@ -15,9 +15,10 @@ def create_operators_dataframe(start_date, end_date):
     start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y")
     end_date = datetime.datetime.strptime(end_date, "%d/%m/%Y")
     delta = datetime.timedelta(days=1)
-    for i in range((end_date - start_date).days+1):
-        df = df.append({"Date": start_date + i*delta}, ignore_index=True)
+    for i in range((end_date - start_date).days + 1):
+        df = df.append({"Date": start_date + i * delta}, ignore_index=True)
     return df, data_df
+
 
 # dataframe for each task as a row
 def create_task_dataframe(start_date, end_date):
@@ -27,25 +28,26 @@ def create_task_dataframe(start_date, end_date):
     start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y")
     end_date = datetime.datetime.strptime(end_date, "%d/%m/%Y")
     delta = datetime.timedelta(days=1)
-    for i in range((end_date - start_date).days+1):
-        df = df.append({"Date": start_date + i*delta}, ignore_index=True)
+    for i in range((end_date - start_date).days + 1):
+        df = df.append({"Date": start_date + i * delta}, ignore_index=True)
     return df, data_df
 
-#converts binary mastix to dfs by operator and by task
-def convert_to_readable_df(start_date, end_date, tasks, operators):
+
+# converts binary mastix to dfs by operator and by task
+def convert_to_readable_df(shifts_model, start_date, end_date, tasks, operators):
     op_df = create_operators_dataframe(start_date, end_date)
     # data_op_df = op_df[1]
     op_df = op_df[0]
     task_df = create_task_dataframe(start_date, end_date)
     # data_task_df = task_df[1]
     task_df = task_df[0]
-    #needs to get the shifts model
+    # needs to get the shifts model
     for i, v in enumerate(shifts_model.vars):
         # find the operator and the shift
         if v.x >= 0.99:
             cell = v.names[2:]
             cell = cell[:-1]
-            #cell is x,y
+            # cell is x,y
             cell_x = cell.split(",")[0]
             cell_y = cell.split(",")[1]
             task_name = tasks.at[cell_x, "name"]
@@ -62,13 +64,12 @@ def convert_to_readable_df(start_date, end_date, tasks, operators):
 
 def main():
     DB_path = './DATA/DB.xlsx'
-    tasks,operators = dataImporter.CSV_importer(DB_path)
-    dfs = convert_to_readable_df("1/3/2021", "31/3/2021",tasks,operators)
-    #by operator
+    tasks, operators = dataImporter.CSV_importer(DB_path)
+    dfs = convert_to_readable_df("1/3/2021", "31/3/2021", tasks, operators)
+    # by operator
     dfs[0].to_excel("./By operator.xlsx")
-    #by task
+    # by task
     dfs[1].to_excel("./By task.xlsx")
-
 
 
 if __name__ == "__main__":
