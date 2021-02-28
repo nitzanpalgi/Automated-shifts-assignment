@@ -5,7 +5,6 @@ from functions import *
 def init_constraints(tasks, operators):
     numTasks = len(tasks)
     numPeople = len(operators)
-
     shifts_model = Model()
 
     x_mat = add_vars(shifts_model, operators, tasks)
@@ -19,8 +18,8 @@ def init_constraints(tasks, operators):
 
 def add_vars(shifts_model, operators, tasks):
     return [shifts_model.add_var(f'x({operator.id},{task.id})', var_type=BINARY)
-            for task in tasks
-            for operator in operators
+            for t_index, task in tasks.iterrows()
+            for o_index, operator in operators.iterrows()
             if is_operator_qualified(operators, task)]
 
 
@@ -41,7 +40,3 @@ def task_overlap_constrains(x_mat, operators, tasks):
                           f'overlapping-({operator},{task}))'
 
     return constrains
-
-
-if __name__ == "__main__":
-    get_days_in_current_month()

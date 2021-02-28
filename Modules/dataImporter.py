@@ -15,7 +15,6 @@ MONTH_TO_DAYS = {
     11: 30,
     12: 31
 }
-PATH = '../data/DB.xlsx'
 tasks_list = []
 
 # tasks_list ---> task_df
