@@ -7,16 +7,11 @@ from pandas import DataFrame
 def init_constraints(tasks, operators):
     numTasks = len(tasks)
     numPeople = len(operators)
-
     shifts_model = Model()
-
     x_mat = add_vars(shifts_model, operators, tasks)
-
-    shifts_model.objective = maximize(xsum(x for x in x_mat))
-
-    # shifts_model += xsum()
-
-    shifts_model += all_tasks_are_assigned_constrains(x_mat, operators, tasks)
+    print(x_mat)
+    # shifts_model.objective = maximize(xsum(x for x in x_mat))
+    # shifts_model += all_tasks_are_assigned_constrains(x_mat, operators, tasks)
 
 
 def add_vars(shifts_model, operators: DataFrame, tasks: DataFrame):
@@ -43,7 +38,3 @@ def task_overlap_constrains(x_mat, operators, tasks):
                           f'overlapping-({operator},{task}))'
 
     return constrains
-
-
-if __name__ == "__main__":
-    get_days_in_current_month()

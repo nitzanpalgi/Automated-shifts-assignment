@@ -13,7 +13,8 @@ def format_tasks_list():
     cost = [task[3] for task in tasks_list]
     Compatible = [task[4] for task in tasks_list]
     min_per_month = [task[5] for task in tasks_list]
-    tasks = pd.DataFrame({'start_time': start_time, 'end_time': end_time, 'name': name, 'cost': cost,
+    ids = [task[6] for task in tasks_list]
+    tasks = pd.DataFrame({'id': ids, 'start_time': start_time, 'end_time': end_time, 'name': name, 'cost': cost,
                           'Compatible': Compatible, 'min_per_month': min_per_month})
     return tasks
 
