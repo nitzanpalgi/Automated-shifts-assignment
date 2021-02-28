@@ -46,12 +46,12 @@ def CSV_importer(path):
     current_year += 1 if current_month == 1 else 0
     NUM_OF_DAYS = MONTH_TO_DAYS[current_month]
 
-    data = pd.read_excel(path, encoding='ISO-8859-1', sheet_name="Tasks")
+    data = pd.read_excel(path, sheet_name="Tasks")
     for index, row_data in data.iterrows():
         Add_row_to_task_list(row_data, NUM_OF_DAYS, current_month, current_year)
 
     tasks_df = format_tasks_list()
-    operators_df = pd.read_excel(path, encoding='ISO-8859-1', sheet_name="Operators")
+    operators_df = pd.read_excel(path,  sheet_name="Operators")
     return tasks_df, operators_df
 
 

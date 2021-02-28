@@ -4,12 +4,12 @@ import xlwt
 import openpyxl
 from mip import Model, xsum, BINARY
 import datetime
-from "../Modules" import dataImporter
+from Modules import dataImporter
 
 
 # datadframe for each operator as row
 def create_operators_dataframe(start_date, end_date):
-    data_df = pd.read_excel("DATA\db.xlsx", sheet_name=0)
+    data_df = pd.read_excel("./DATA/DB.xlsx", sheet_name=0)
     df = pd.DataFrame(columns=data_df.name)
     df.insert(0, "Date", [])
     start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y")
@@ -20,10 +20,8 @@ def create_operators_dataframe(start_date, end_date):
     return df, data_df
 
 # dataframe for each task as a row
-
-
 def create_task_dataframe(start_date, end_date):
-    data_df = pd.read_excel("DATA\db.xlsx", sheet_name=1)
+    data_df = pd.read_excel("./DATA/DB.xlsx", sheet_name=1)
     df = pd.DataFrame(columns=data_df.name)
     df.insert(0, "Date", [])
     start_date = datetime.datetime.strptime(start_date, "%d/%m/%Y")
@@ -62,18 +60,15 @@ def convert_to_readable_df(start_date, end_date, tasks, operators):
             return (op_df, task_df)
     # find gain
 
-    # if i % n == n-1:
-    # stdout.write('\n')
-
 
 def main():
     DB_path = './DATA/DB.xlsx'
-    task,operators = dataImporter.CSV_importer(DB_path)
+    tasks,operators = dataImporter.CSV_importer(DB_path)
     dfs = convert_to_readable_df("1/3/2021", "31/3/2021",tasks,operators)
     #by operator
-    dfs[0].to_excel("./Output/By operator.xlsx")
+    dfs[0].to_excel("./By operator.xlsx")
     #by task
-    dfs[1].to_excel("./Output/By task.xlsx")
+    dfs[1].to_excel("./By task.xlsx")
 
 
 
