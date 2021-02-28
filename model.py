@@ -43,7 +43,3 @@ def task_overlap_constrains(x_mat, operators, tasks):
                           f'overlapping-({operator},{task}))'
 
     return constrains
-
-
-if __name__ == "__main__":
-    get_days_in_current_month()

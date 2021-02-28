@@ -13,7 +13,8 @@ def format_tasks_list():
     cost = [task[3] for task in tasks_list]
     Compatible = [task[4] for task in tasks_list]
     min_per_month = [task[5] for task in tasks_list]
-    tasks = pd.DataFrame({'start_time': start_time, 'end_time': end_time, 'name': name, 'cost': cost,
+    ids = [task[6] for task in tasks_list]
+    tasks = pd.DataFrame({'id': ids, 'start_time': start_time, 'end_time': end_time, 'name': name, 'cost': cost,
                           'Compatible': Compatible, 'min_per_month': min_per_month})
     return tasks
 
@@ -23,7 +24,7 @@ def Add_row_to_task_list(row_data):
         date_time_str = f'{day} {row_data["start-hour"]}'
         start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
         end_time = start_time + timedelta(hours=row_data['time'])
-        new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1]
+        new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1, row_data['id']]
         tasks_list.append(new_task)
 
 # Gets the path of the DB and return (tasks_df, operators_df) - 2 dataFrames
