@@ -6,8 +6,11 @@ DATA_PATH = 'DATA/DB.xlsx'
 
 if __name__ == "__main__":
     tasks, operators = CSV_importer(DATA_PATH)
+    print(len(tasks))
 
     shifts_model = init_constraints(tasks, operators)
+    print(shifts_model)
+
     shifts_model.optimize()
     if shifts_model.num_solutions:
         dfs = convert_to_readable_df(shifts_model, "1/3/2021", "31/3/2021", tasks, operators)
