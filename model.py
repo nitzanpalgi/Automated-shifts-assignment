@@ -5,41 +5,47 @@ from pandas import DataFrame
 
 
 def init_constraints(tasks, operators):
-    numTasks = len(tasks)
-    numPeople = len(operators)
-
     shifts_model = Model()
 
     x_mat = add_vars(shifts_model, operators, tasks)
 
-    shifts_model.objective = maximize(xsum(x for x in x_mat))
+    add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
 
-    # shifts_model += xsum()
+    # add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
 
-    shifts_model += all_tasks_are_assigned_constrains(x_mat, operators, tasks)
+    add_operator_capacity_constraint(shifts_model, x_mat, operators, tasks)
+
+    return shifts_model
 
 
 def add_vars(shifts_model, operators: DataFrame, tasks: DataFrame):
-    return [shifts_model.add_var(f'x({operator_id},{task_id})', var_type=BINARY)
-            for task_id, task in tasks.iterrows()
-            for operator_id, operator in operators.iterrows()
-            if is_operator_qualified(operator, task)]
+    return [
+        {task_id: shifts_model.add_var(f'x({operator_id},{task_id})', var_type=BINARY)
+         for task_id, task in tasks.iterrows()
+         if is_operator_qualified(operator, task)}
+        for operator_id, operator in operators.iterrows()
+    ]
 
 
-def all_tasks_are_assigned_constrains(x_mat, operators, tasks):
-    return [(xsum(x_mat[operator.id][task.id] for operator in operators
-                  if is_operator_qualified(operator, task)) == 1, f'task({task})') for task in tasks]
+def add_all_tasks_are_assigned_constrains(model, x_mat, operators: DataFrame, tasks: DataFrame):
+    for task_id, task in tasks.iterrows():
+        model += xsum(x_mat[operator_id][task_id] for operator_id, operator in operators.iterrows()
+                      if is_operator_qualified(operator, task)) == 1, f'task({task_id})'
 
 
-def task_overlap_constrains(x_mat, operators, tasks):
-    constrains = []
-    for task in tasks():
-        for operator in operators:
-            constrains += xsum(
-                x_mat[operator.id][task.id] for task_b in operators
+def add_task_overlap_constrains(model, x_mat, operators: DataFrame, tasks: DataFrame):
+    for task_id, task in tasks.iterrows():
+        for operator_id, operator in operators.iterrows():
+            model += xsum(
+                x_mat[operator_id][task_id] for task_b_id, task_b in tasks.iterrows()
                 if (is_task_overlapping(task, task_b) and
-                    task != task_b and
                     is_operator_qualified(operator, task))) <= 1, \
-                          f'overlapping-({operator},{task}))'
+                     f'overlapping-({operator_id},{task_id}))'
 
-    return constrains
+
+def add_operator_capacity_constraint(model, x_mat, operators: DataFrame, tasks: DataFrame):
+    for operator_id, operator in operators.iterrows():
+        model += xsum(
+            task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks.iterrows() if
+            is_operator_qualified(operator, task)
+        ) <= operator["MAX"], f'capacity-({operator_id})'
