@@ -4,7 +4,7 @@ import xlwt
 import openpyxl
 from mip import Model, xsum, BINARY
 import datetime
-
+from "../Modules" import dataImporter
 
 
 # datadframe for each operator as row
@@ -34,12 +34,12 @@ def create_task_dataframe(start_date, end_date):
     return df, data_df
 
 #converts binary mastix to dfs by operator and by task
-def convert_to_readable_df(start_date, end_date, big_task_df, big_names_df):
+def convert_to_readable_df(start_date, end_date, tasks, operators):
     op_df = create_operators_dataframe(start_date, end_date)
-    data_op_df = op_df[1]
+    # data_op_df = op_df[1]
     op_df = op_df[0]
     task_df = create_task_dataframe(start_date, end_date)
-    data_task_df = task_df[1]
+    # data_task_df = task_df[1]
     task_df = task_df[0]
     #needs to get the shifts model
     for i, v in enumerate(shifts_model.vars):
@@ -51,11 +51,11 @@ def convert_to_readable_df(start_date, end_date, big_task_df, big_names_df):
             #cell is x,y
             cell_x = cell.split(",")[0]
             cell_y = cell.split(",")[1]
-            task_name = big_task_df.at[cell_x, "name"]
-            task_start_time = big_task_df.at[cell_x, "start_time"]
+            task_name = tasks.at[cell_x, "name"]
+            task_start_time = tasks.at[cell_x, "start_time"]
             task_start_time = datetime.datetime.strptime(
                 task_start_time, "%d/%m/%Y")
-            operator_name = big_names_df.at[cell_y, "name"]
+            operator_name = operators.at[cell_y, "name"]
             # find the persons and shift and assign them in the dfs
             op_df.at[operator_name, task_start_time] = task_name
             task_df.at[task_name, task_start_time] = operator_name
@@ -67,7 +67,9 @@ def convert_to_readable_df(start_date, end_date, big_task_df, big_names_df):
 
 
 def main():
-    dfs = convert_to_readable_df("1/3/2021", "31/3/2021")
+    DB_path = './DATA/DB.xlsx'
+    task,operators = dataImporter.CSV_importer(DB_path)
+    dfs = convert_to_readable_df("1/3/2021", "31/3/2021",tasks,operators)
     #by operator
     dfs[0].to_excel("./Output/By operator.xlsx")
     #by task
