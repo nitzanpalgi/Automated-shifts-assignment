@@ -41,7 +41,6 @@ def convert_to_readable_df(start_date, end_date, tasks, operators):
     task_df = task_df[0]
     #needs to get the shifts model
     for i, v in enumerate(shifts_model.vars):
-        # stdout.write('O ' if v.x >= 0.99 else '. ')
         # find the operator and the shift
         if v.x >= 0.99:
             cell = v.names[2:]
