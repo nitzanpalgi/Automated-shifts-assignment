@@ -1,7 +1,7 @@
 import pandas as pd
 from datetime import timedelta, datetime
 from functions import get_days_in_current_month
-
+from numpy import random
 
 tasks_list = []
 
@@ -21,11 +21,12 @@ def format_tasks_list():
 # Handle row and add to task_list
 def Add_row_to_task_list(row_data):
     for day in get_days_in_current_month():
-        date_time_str = f'{day} {row_data["start-hour"]}'
-        start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
-        end_time = start_time + timedelta(hours=row_data['time'])
-        new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1, row_data['id']]
-        tasks_list.append(new_task)
+        if random.rand() < row_data['probability']:
+            date_time_str = f'{day} {row_data["start-hour"]}'
+            start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
+            end_time = start_time + timedelta(hours=row_data['time'])
+            new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1]
+            tasks_list.append(new_task)
 
 # Gets the path of the DB and return (tasks_df, operators_df) - 2 dataFrames
 def CSV_importer(path):
