@@ -71,10 +71,16 @@ def add_task_overlap_constrains(model, x_mat, operators, tasks):
 
 def add_operator_capacity_constraint(model, x_mat, operators, tasks):
     for operator_id, operator in operators:
-        model += operator["MAX"] * 0.8 <= xsum(
+        model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_capable(operator, task)
-        ) <= operator["MAX"] * 1.2, f'capacity-({operator_id})'
+        ) <= operator["MAX"] * 1.2, f'max capacity-({operator_id})'
+
+    for operator_id, operator in operators:
+        model += xsum(
+            task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
+            is_operator_capable(operator, task)
+        ) >= operator["MAX"] * 0.8, f'min capacity-({operator_id})'
 
 
 def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):
