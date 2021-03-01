@@ -49,7 +49,7 @@ def add_vars(shifts_model, operators, tasks):
     return [
         {task_id: shifts_model.add_var(f'x({operator_id},{task_id})', var_type=BINARY)
          for task_id, task in tasks
-         if is_operator_qualified(operator, task)}
+         if is_operator_capable(operator, task)}
         for operator_id, operator in operators
     ]
 
@@ -57,7 +57,7 @@ def add_vars(shifts_model, operators, tasks):
 def add_all_tasks_are_assigned_constrains(model, x_mat, operators, tasks):
     for task_id, task in tasks:
         model += xsum(x_mat[operator_id][task_id] for operator_id, operator in operators
-                      if is_operator_qualified(operator, task)) == 1, f'task({task_id})'
+                      if is_operator_capable(operator, task)) == 1, f'task({task_id})'
 
 
 def add_task_overlap_constrains(model, x_mat, operators, tasks):
@@ -66,14 +66,14 @@ def add_task_overlap_constrains(model, x_mat, operators, tasks):
         for operator_id, operator in operators:
             model += xsum(
                 x_mat[operator_id][task_id] for task_id, task in relevant_tasks
-                if is_operator_qualified(operator, task)) <= 1, f'overlapping-({operator_id},{day}))'
+                if is_operator_capable(operator, task)) <= 1, f'overlapping-({operator_id},{day}))'
 
 
 def add_operator_capacity_constraint(model, x_mat, operators, tasks):
     for operator_id, operator in operators:
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
-            is_operator_qualified(operator, task)
+            is_operator_capable(operator, task)
         ) <= operator["MAX"] * 1.2, f'capacity-({operator_id})'
 
 
@@ -82,8 +82,8 @@ def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):
         for _, taskType in get_tasks_type_df().iterrows():
             if is_operator_qualified(operator, taskType) and taskType["min_per_month"] > 0:
                 model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks
-                              if task["type"] == taskType['type']) >= taskType["min_per_month"],\
-                         f'keep form-({operator_id},{taskType["type"]})'
+                              if (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
+                         >= taskType["min_per_month"], f'keep form-({operator_id},{taskType["type"]})'
 
 
 def add_weekly_capactiy_constraint(model, x_mat, operators, tasks):
@@ -93,6 +93,5 @@ def add_weekly_capactiy_constraint(model, x_mat, operators, tasks):
         for operator_id, operator in operators:
             model += xsum(
                 x_mat[operator_id][task_id] for task_id, task in relevant_tasks
-                if is_operator_qualified(operator, task)
-            ) <= operator["MAX"] , f'weekly-capacity-({operator_id},{week_id}))'
-
+                if is_operator_capable(operator, task)
+            ) <= operator["MAX"], f'weekly-capacity-({operator_id},{week_id}))'

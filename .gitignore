@@ -129,8 +129,12 @@ dmypy.json
 .pyre/
 
 # pycharm
-.idea/
+.idea
 
 
 #DB xlsx
 /data/~$DB.xlsx
+
+#output - butzi
+/output/Butzi.xlsx
+
