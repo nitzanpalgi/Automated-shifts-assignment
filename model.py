@@ -1,6 +1,7 @@
-from mip import Model, xsum, BINARY, maximize
+from mip import Model, xsum, BINARY, minimize
 from functions import *
 from Modules.dataImporter import get_tasks_type_df
+from datetime import datetime
 
 
 def init_constraints(tasks_df, operators_df):
@@ -11,7 +12,12 @@ def init_constraints(tasks_df, operators_df):
 
     x_mat = add_vars(shifts_model, operators, tasks)
 
-    shifts_model.objective = maximize(xsum(task for operator in x_mat for task in operator.values()))
+    shifts_model.objective = minimize(
+        xsum(task_x * get_operator_task_cost(operators[operator_xs_id][1], tasks[task_xs_id][1])
+            for operator_xs_id, operator_xs in enumerate(x_mat)
+            for task_xs_id, task_x in operator_xs.items()
+        )
+    )
 
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
     add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
@@ -21,10 +27,22 @@ def init_constraints(tasks_df, operators_df):
     return shifts_model
 
 
-def get_var_if_qualified(shifts_model, operator, task, operator_id, task_id):
-    if is_operator_qualified(operator, task):
-        return shifts_model.add_var(f'x({operator_id},{task_id})', var_type=BINARY)
-    return 1
+def get_operator_task_cost(operator, task):
+    if dont_want_task(operator, task):
+        return operator["pazam"] * (task["cost"] + 10)
+    else:
+        return operator["pazam"] * task["cost"]
+
+
+def dont_want_task(operator, task):
+    if str(operator["Not evening"]) == 'nan':
+        return False
+    unwanted_evenings = str(operator["Not evening"]).split(',')
+    current_date = datetime.now()
+    year, month = current_date.year, current_date.month
+
+    return any(task["start_time"] <= datetime(year=year, month=month, day=int(evening), hour=18) <= task["end_time"]
+               for evening in unwanted_evenings)
 
 
 def add_vars(shifts_model, operators, tasks):
