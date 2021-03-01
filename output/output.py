@@ -48,10 +48,17 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
             df.at[operator_name, task_start_time] = task_name
 
             # if this is sofash write the next day too
+            nextDay = tasks['start_time'][cell_y] + timedelta(days=1)
+            next_day_start_time = str(nextDay).split(' ')[0]
+
             if 'Sofash' in task_name:
-                nextDay = tasks['start_time'][cell_y] + timedelta(days=1)
-                next_day_start_time = str(nextDay).split(' ')[0]
                 df.at[operator_name, next_day_start_time] = task_name
+                nextDay = nextDay + timedelta(days=1)
+                next_day_start_time = str(nextDay).split(' ')[0]
+                df.at[operator_name, next_day_start_time] = 'MALAM'
+            elif 'night' in task_name:
+                if(nextDay.weekday() != 4):
+                    df.at[operator_name, next_day_start_time] = 'MALAM'
 
     colors_dict = create_colors_dict(tasks_df_colors)
     df = df.sort_index(1)
@@ -83,7 +90,10 @@ def color_cells(file_path, color_dict):
                 new_cell.fill = PatternFill(
                     start_color=color_dict[cell.value], end_color=color_dict[cell.value], fill_type="solid")
             # add weekend colors
-            elif cell.row > 1 and (datetime.datetime.strptime((ws.cell(cell.row, 1,).value), '%Y-%m-%d').weekday() == 4 or datetime.datetime.strptime((ws.cell(cell.row, 1,).value), '%Y-%m-%d').weekday()==5):
+            elif cell.value == 'MALAM':
+                new_cell.fill = PatternFill(start_color='e5e5e5', end_color='f5f5f5', fill_type='solid')
+            elif cell.row > 1 and (datetime.datetime.strptime(ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 4
+                                   or datetime.datetime.strptime(ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 5):
                 new_cell.fill = PatternFill(
                     start_color="e4e4e4", end_color="e4e4e4", fill_type="solid")
                 new_cell.font = Font(bold=True)
