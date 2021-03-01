@@ -41,3 +41,7 @@ def is_task_overlapping(task_a, task_b):
     return not all(task_a == task_b) and \
            (task_a['start_time'] <= task_b['start_time'] <= task_a['end_time'] or
             task_b['start_time'] <= task_a['start_time'] <= task_b['end_time'])
+
+
+def is_task_holiday(task):
+    return task["is_weekend"]==1
