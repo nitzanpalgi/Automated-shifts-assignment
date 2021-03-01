@@ -22,3 +22,5 @@ if __name__ == "__main__":
         color_dict = final_df_with_data[1]
         final_df.T.to_excel('./output/Butzi.xlsx')
         color_cells("./output/Butzi.xlsx",color_dict)
+    else:
+        print("FUCK!!!!!!!!!!!!")

@@ -77,5 +77,5 @@ def add_weekly_capactiy_constraint(model, x_mat, operators, tasks):
             model += xsum(
                 x_mat[operator_id][task_id] for task_id, task in relevant_tasks
                 if is_operator_qualified(operator, task)
-            ) <= operator["MAX"] / (len(weeks) - 1), f'weekly-capacity-({operator_id},{week_id}))'
+            ) <= operator["MAX"] , f'weekly-capacity-({operator_id},{week_id}))'
 
