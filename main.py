@@ -1,7 +1,8 @@
 from model import init_constraints
+from output.output import convert_to_readable_df,color_cells
 from Modules.dataImporter import import_data_from_excel
-from output.output import convert_to_readable_df
 import time
+
 
 DATA_PATH = 'DATA/DB.xlsx'
 
@@ -16,8 +17,12 @@ if __name__ == "__main__":
     shifts_model.optimize(max_seconds_same_incumbent=10)
 
     print(time.time() - t)
-
     if shifts_model.num_solutions:
         print(f'objective value {shifts_model.objective_value}')
-        final_df = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
-        final_df.T.to_excel('./output/dani.xlsx')
+        final_df_with_data = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
+        final_df = final_df_with_data[0]
+        color_dict = final_df_with_data[1]
+        final_df.T.to_excel('./output/Butzi.xlsx')
+        color_cells("./output/Butzi.xlsx",color_dict)
+    else:
+        print("FUCK!!!!!!!!!!!!")

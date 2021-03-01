@@ -19,13 +19,10 @@ def init_constraints(tasks_df, operators_df):
     )
 
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
-
     add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
-
     add_operator_capacity_constraint(shifts_model, x_mat, operators, tasks)
-
     add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
-
+    add_weekly_capactiy_constraint(shifts_model, x_mat, operators, tasks)
     return shifts_model
 
 
@@ -72,3 +69,15 @@ def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):
                 model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks
                               if task["type"] == taskType['type']) >= taskType["min_per_month"],\
                          f'keep form-({operator_id},{taskType["type"]})'
+
+
+def add_weekly_capactiy_constraint(model, x_mat, operators, tasks):
+    weeks = get_days_in_week_in_current_month()
+    for week_id, days_in_week in enumerate(weeks):
+        relevant_tasks = [(task_id, task) for task_id, task in tasks if is_task_in_week(week_id, task)]
+        for operator_id, operator in operators:
+            model += xsum(
+                x_mat[operator_id][task_id] for task_id, task in relevant_tasks
+                if is_operator_qualified(operator, task)
+            ) <= operator["MAX"] , f'weekly-capacity-({operator_id},{week_id}))'
+
