@@ -51,6 +51,7 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
             task_start_time = str(tasks['start_time'][cell_y]).split(' ')[0]
             df.at[operator_name, task_start_time] = task_name
     colors_dict= create_colors_dict(tasks_df_colors)
+    df =df.sort_index(1)
     return df,colors_dict
 
 def create_colors_dict(color_df):
