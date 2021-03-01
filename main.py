@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     shifts_model = init_constraints(tasks, operators)
 
-    shifts_model.optimize()
+    shifts_model.optimize(max_seconds_same_incumbent=10)
 
     print(time.time() - t)
 
