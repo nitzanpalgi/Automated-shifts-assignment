@@ -1,6 +1,7 @@
 from mip import Model, xsum, BINARY, minimize
 from functions import *
 from Modules.dataImporter import get_tasks_type_df
+from datetime import datetime
 
 
 def init_constraints(tasks_df, operators_df):
@@ -27,7 +28,21 @@ def init_constraints(tasks_df, operators_df):
 
 
 def get_operator_task_cost(operator, task):
-    return operator["pazam"] * task["cost"]
+    if dont_want_task(operator, task):
+        return operator["pazam"] * (task["cost"] + 10)
+    else:
+        return operator["pazam"] * task["cost"]
+
+
+def dont_want_task(operator, task):
+    if str(operator["Not evening"]) == 'nan':
+        return False
+    unwanted_evenings = str(operator["Not evening"]).split(',')
+    current_date = datetime.now()
+    year, month = current_date.year, current_date.month
+
+    return any(task["start_time"] <= datetime(year=year, month=month, day=int(evening), hour=18) <= task["end_time"]
+               for evening in unwanted_evenings)
 
 
 def add_vars(shifts_model, operators, tasks):
