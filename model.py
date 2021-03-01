@@ -1,5 +1,6 @@
 from mip import Model, xsum, BINARY, maximize
 from functions import *
+from Modules.dataImporter import get_tasks_type_df
 
 
 def init_constraints(tasks_df, operators_df):
@@ -17,6 +18,8 @@ def init_constraints(tasks_df, operators_df):
     add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
 
     add_operator_capacity_constraint(shifts_model, x_mat, operators, tasks)
+
+    add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
 
     return shifts_model
 
@@ -57,3 +60,12 @@ def add_operator_capacity_constraint(model, x_mat, operators, tasks):
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_qualified(operator, task)
         ) <= operator["MAX"] * 1.2, f'capacity-({operator_id})'
+
+
+def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):
+    for operator_id, operator in operators:
+        for _, taskType in get_tasks_type_df().iterrows():
+            if is_operator_qualified(operator, taskType) and taskType["min_per_month"] > 0:
+                model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks
+                              if task["type"] == taskType['type']) >= taskType["min_per_month"],\
+                         f'keep form-({operator_id},{taskType["type"]})'
