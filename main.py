@@ -5,6 +5,7 @@ import time
 
 
 DATA_PATH = 'DATA/DB.xlsx'
+OUTPUT_PATH = './output/Butzi.xlsx'
 
 if __name__ == "__main__":
     t = time.time()
@@ -16,13 +17,21 @@ if __name__ == "__main__":
 
     shifts_model.optimize(max_seconds_same_incumbent=10)
 
-    print(time.time() - t)
+    print(f"overall time: {time.time() - t}")
+
     if shifts_model.num_solutions:
         print(f'objective value {shifts_model.objective_value}')
         final_df_with_data = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
         final_df = final_df_with_data[0]
         color_dict = final_df_with_data[1]
-        final_df.T.to_excel('./output/Butzi.xlsx')
-        color_cells("./output/Butzi.xlsx",color_dict)
+
+        try:
+            final_df.T.to_excel(OUTPUT_PATH)
+        except:
+            print("Close output file!")
+
+            final_df.T.to_excel(OUTPUT_PATH)
+
+        color_cells(OUTPUT_PATH, color_dict)
     else:
-        print("FUCK!!!!!!!!!!!!")
+        print("DAMN! no feasable solution found")
