@@ -38,7 +38,7 @@ def distribute_tasks_in_day(row_data):
             start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
             end_time = start_time + timedelta(hours=row_data['time'])
             new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1,
-                        row_data['id']]
+                        row_data['id'], row_data['type']]
             tasks_in_day.append(new_task)
 
     return tasks_in_day

@@ -43,7 +43,6 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
 
             df.at[operator_name, task_start_time] = task_name
 
-
     return df
 
 
