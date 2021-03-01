@@ -16,10 +16,8 @@ if __name__ == "__main__":
     shifts_model.optimize()
 
     print(time.time() - t)
+
     if shifts_model.num_solutions:
         print(f'objective value {shifts_model.objective_value}')
-        dfs = convert_to_readable_df(shifts_model, "1/3/2021", "31/3/2021", tasks, operators)
-        dfs[0].to_excel("./By operator.xlsx")
-        # by task
-        dfs[1].to_excel("./By task.xlsx")
-
+        final_df = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
+        final_df.T.to_excel('./output/dani.xlsx')
