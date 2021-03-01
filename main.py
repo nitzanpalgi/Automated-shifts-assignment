@@ -1,6 +1,6 @@
 from model import init_constraints
-from Modules.dataImporter import CSV_importer
 from output.output import convert_to_readable_df,color_cells
+from Modules.dataImporter import import_data_from_excel
 import time
 
 
@@ -9,7 +9,7 @@ DATA_PATH = 'DATA/DB.xlsx'
 if __name__ == "__main__":
     t = time.time()
 
-    tasks, operators = CSV_importer(DATA_PATH)
+    tasks, operators = import_data_from_excel(DATA_PATH)
     print(f'number of tasks {len(tasks)}')
 
     shifts_model = init_constraints(tasks, operators)

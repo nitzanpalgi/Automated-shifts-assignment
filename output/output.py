@@ -83,7 +83,8 @@ def color_cells(file_path,color_dict):
 def main():
     shifts_model = {}
     DB_path = '../DATA/DB.xlsx'
-    tasks, operators = dataImporter.CSV_importer(DB_path)
+
+    tasks, operators = dataImporter.import_data_from_excel(DB_path)
     operators_df, tasks_df = convert_to_readable_df(shifts_model, tasks, operators, DB_path)
 
     # by operator
