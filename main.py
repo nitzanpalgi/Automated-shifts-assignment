@@ -23,5 +23,5 @@ if __name__ == "__main__":
         final_df_with_data = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
         final_df = final_df_with_data[0]
         color_dict = final_df_with_data[1]
-        final_df.T.to_excel('./output/dani.xlsx')
-        color_cells("./output/dani.xlsx",color_dict)
+        final_df.T.to_excel('./output/Butzi.xlsx')
+        color_cells("./output/Butzi.xlsx",color_dict)

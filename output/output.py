@@ -75,8 +75,7 @@ def color_cells(file_path,color_dict):
                 new_cell.fill= PatternFill(start_color= color_dict[cell.value],end_color= color_dict[cell.value],fill_type="solid")
             else:
                 new_cell.font = Font(bold=True) 
-    new_book.save('./output/dani.xlsx')
-    return
+    return new_book.save('./output/Butzi.xlsx')
 
     
 
