@@ -71,7 +71,7 @@ def add_task_overlap_constrains(model, x_mat, operators, tasks):
 
 def add_operator_capacity_constraint(model, x_mat, operators, tasks):
     for operator_id, operator in operators:
-        model += xsum(
+        model += operator["MAX"] * 0.8 <= xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_capable(operator, task)
         ) <= operator["MAX"] * 1.2, f'capacity-({operator_id})'
