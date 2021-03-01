@@ -3,11 +3,14 @@ import calendar
 from numpy import count_nonzero
 import math
 
+
 def is_operator_capable(operator, task):
     return is_operator_qualified(operator, task) and is_operator_strong_no_task(operator, task)
 
+
 def is_operator_qualified(operator, task):
     return task['type'] in operator['qualified tasks']
+
 
 def is_operator_strong_no_task(operator, task):
     not_task_days = [int(num) for num in str(operator['Not task']).split(',') if num != 'nan']
