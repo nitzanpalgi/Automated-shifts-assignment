@@ -2,6 +2,10 @@ import pandas as pd
 from Modules import dataImporter
 from functions import *
 from datetime import timedelta, date
+from openpyxl.reader.excel import load_workbook
+from openpyxl.workbook import Workbook
+from openpyxl.styles import Color, PatternFill,Fill, Font, Border
+from openpyxl.cell import Cell
 
 # dataframe for each operator as row
 def create_operators_dataframe(operators):
@@ -16,11 +20,17 @@ def create_task_dataframe(DB_path):
     df = pd.DataFrame(columns=data_df.name)
     for date in get_days_in_current_month():
         df = df.append({"Date": date}, ignore_index=True)
-    return df
+    return df, data_df
 
 
 # converts binary matrix to dfs by operator and by task
 def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
+    operators_df = create_operators_dataframe(operators)
+    tasks_df_multiple = create_task_dataframe(DB_path)
+    tasks_df = tasks_df_multiple[0]
+    tasks_df_colors = tasks_df_multiple[1]
+
+
     df = pd.DataFrame()
     # needs to get the shifts model
     for i, v in enumerate(shifts_model.vars):
@@ -41,8 +51,35 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
                 next_day_start_time = str(nextDay).split(' ')[0]
                 df.at[operator_name, next_day_start_time] = task_name
 
-    return df
+    colors_dict= create_colors_dict(tasks_df_colors)
+    df =df.sort_index(1)
+    return df,colors_dict
 
+def create_colors_dict(color_df):
+    colors_dict_from_df = color_df.to_dict()
+    colors_dict ={}
+    for i in range(len(colors_dict_from_df["name"])):
+        colors_dict[colors_dict_from_df["name"][i]]=colors_dict_from_df["color"][i][1:]
+    return colors_dict
+
+def color_cells(file_path,color_dict):
+    new_book= Workbook()
+    new_sheet = new_book.active
+    book = load_workbook(file_path)
+    ws = book.worksheets[0]
+    min_row = int(ws.min_row)
+    max_row = int(ws.max_row)
+    for col in ws:
+        for cell in col:
+            new_cell=new_sheet.cell(row = cell.row,column=cell.column,value =cell.value)
+            # new_cell.font = cell.font
+            if cell.value in color_dict:
+                new_cell.fill= PatternFill(start_color= color_dict[cell.value],end_color= color_dict[cell.value],fill_type="solid")
+            else:
+                new_cell.font = Font(bold=True) 
+    return new_book.save('./output/Butzi.xlsx')
+
+    
 
 def main():
     shifts_model = {}
