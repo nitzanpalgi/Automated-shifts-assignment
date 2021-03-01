@@ -1,6 +1,7 @@
 import pandas as pd
 from Modules import dataImporter
 from functions import *
+from datetime import timedelta, date
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
 from openpyxl.styles import Color, PatternFill,Fill, Font, Border
@@ -22,11 +23,6 @@ def create_task_dataframe(DB_path):
     return df, data_df
 
 
-counterZeros = 0
-counterOnes = 0
-counterElse = 0
-
-
 # converts binary matrix to dfs by operator and by task
 def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
     operators_df = create_operators_dataframe(operators)
@@ -36,10 +32,8 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
 
 
     df = pd.DataFrame()
-
     # needs to get the shifts model
     for i, v in enumerate(shifts_model.vars):
-
         if v.x >= 0.99:
             cell = v.name[2:]
             cell = cell[:-1]
@@ -47,9 +41,16 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
             cell_y = int(cell.split(",")[1])
             operator_name = operators['name'][cell_x]
             task_name = tasks['name'][cell_y]
-
             task_start_time = str(tasks['start_time'][cell_y]).split(' ')[0]
             df.at[operator_name, task_start_time] = task_name
+
+            # if this is sofash write the next day too
+            if 'Sofash' in task_name:
+                print("Found sofash at - ", task_start_time)
+                nextDay = tasks['start_time'][cell_y] + timedelta(days=1)
+                next_day_start_time = str(nextDay).split(' ')[0]
+                df.at[operator_name, next_day_start_time] = task_name
+
     colors_dict= create_colors_dict(tasks_df_colors)
     df =df.sort_index(1)
     return df,colors_dict
@@ -83,13 +84,9 @@ def color_cells(file_path,color_dict):
 def main():
     shifts_model = {}
     DB_path = '../DATA/DB.xlsx'
-
     tasks, operators = dataImporter.import_data_from_excel(DB_path)
     operators_df, tasks_df = convert_to_readable_df(shifts_model, tasks, operators, DB_path)
-
-    # by operator
     operators_df.to_excel("./operators_data.xlsx")
-    # by task
     tasks_df.to_excel("./tasks_data.xlsx")
 
 

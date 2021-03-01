@@ -13,11 +13,8 @@ if __name__ == "__main__":
     print(f'number of tasks {len(tasks)}')
 
     shifts_model = init_constraints(tasks, operators)
-
     shifts_model.optimize()
-
     print(time.time() - t)
-
     if shifts_model.num_solutions:
         print(f'objective value {shifts_model.objective_value}')
         final_df_with_data = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
@@ -25,3 +22,5 @@ if __name__ == "__main__":
         color_dict = final_df_with_data[1]
         final_df.T.to_excel('./output/Butzi.xlsx')
         color_cells("./output/Butzi.xlsx",color_dict)
+    else:
+        print("FUCK!!!!!!!!!!!!")
