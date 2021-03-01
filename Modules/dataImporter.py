@@ -76,10 +76,12 @@ def import_data_from_excel(path):
     print(len(tasks))
     tasks_df = format_tasks_list(tasks)
     operators_df = pd.read_excel(path, sheet_name="Operators")
-    operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
+
+    # Temp remove recalculation of capacity
+    # operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
 
     calc_tasks_types(tasks_data)
-    # temp_func(data, operators_df)
+
     return tasks_df, operators_df
 
 def get_tasks_type_df():

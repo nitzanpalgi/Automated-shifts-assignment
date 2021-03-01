@@ -2,6 +2,7 @@ from mip import Model, xsum, BINARY, minimize
 from functions import *
 from Modules.dataImporter import get_tasks_type_df
 from datetime import datetime
+import math
 
 
 def init_constraints(tasks_df, operators_df):
@@ -30,9 +31,9 @@ def init_constraints(tasks_df, operators_df):
 
 def get_operator_task_cost(operator, task):
     if dont_want_task(operator, task):
-        return operator["pazam"] * (task["cost"] + 10)
+        return (operator["pazam"] ** 2) * (task["cost"] + 10)
     else:
-        return operator["pazam"] * task["cost"]
+        return (operator["pazam"] ** 2) * task["cost"]
 
 
 def dont_want_task(operator, task):
@@ -81,7 +82,7 @@ def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks)
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_capable(operator, task) and not is_task_holiday(task)
-        ) >= operator["MAX"] * 0.8, f'min capacity-({operator_id})'
+        ) >= operator["MAX"] * 0.6, f'min capacity-({operator_id})'
 
 
 def add_operator_capacity_constraint_weekend(model, x_mat, operators, tasks):
@@ -107,6 +108,6 @@ def add_weekly_capactiy_constraint(model, x_mat, operators, tasks):
         relevant_tasks = [(task_id, task) for task_id, task in tasks if is_task_in_week(week_id, task)]
         for operator_id, operator in operators:
             model += xsum(
-                x_mat[operator_id][task_id] for task_id, task in relevant_tasks
-                if is_operator_capable(operator, task) and task["is_weekend"]==0
-            ) <= operator["MAX"], f'weekly-capacity-({operator_id},{week_id}))'
+                task["cost"] * x_mat[operator_id][task_id] for task_id, task in relevant_tasks
+                if is_operator_capable(operator, task) and not is_task_holiday(task)
+            ) >= math.floor(operator["MAX"] * 0.2), f'weekly-capacity-({operator_id},{week_id}))'
