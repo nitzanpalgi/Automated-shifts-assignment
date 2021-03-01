@@ -4,6 +4,7 @@ from datetime import timedelta, datetime
 from functions import get_days_in_current_month
 from numpy import random, sum
 
+
 # Turn tasks list into a task DataFrame
 def format_tasks_list(tasks):
     start_time = [task[0] for task in tasks]
@@ -26,6 +27,7 @@ def format_tasks_list(tasks):
         "type": types
     })
 
+
 # Handle row and add to task_list
 def distribute_tasks_in_day(row_data):
     tasks_in_day = []
@@ -35,7 +37,8 @@ def distribute_tasks_in_day(row_data):
             date_time_str = f'{day} {row_data["start-hour"]}'
             start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
             end_time = start_time + timedelta(hours=row_data['time'])
-            new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1, row_data['id']]
+            new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'], 1,
+                        row_data['id']]
             tasks_in_day.append(new_task)
 
     return tasks_in_day
@@ -56,7 +59,6 @@ def recalculate_operators_capacity(operators, tasks):
     tasks_cost_sum = sum(tasks["cost"])
 
     return operators["MAX"] * (tasks_cost_sum / capacity_sum)
-    return tasks_in_day
 
 
 # Gets the path of the DB and return (tasks_df, operators_df) - 2 dataFrames
@@ -81,4 +83,3 @@ def get_tasks_type_df():
 def calc_tasks_types(data: DataFrame):
     global tasks_type_df
     tasks_type_df = data.drop_duplicates(subset=['type'])[['min_per_month', 'type']]
-

@@ -12,6 +12,6 @@ pandas = "*"
 xlrd = "==1.2.0"
 xlwt = "*"
 openpyxl = "*"
-
+numpy = "*"
 
 [requires]
