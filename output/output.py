@@ -5,7 +5,7 @@ from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
 from openpyxl.styles import Color, PatternFill,Fill, Font, Border
 from openpyxl.cell import Cell
-
+import datetime
 # dataframe for each operator as row
 def create_operators_dataframe(operators):
     df = pd.DataFrame(columns=operators.name)
@@ -71,9 +71,14 @@ def color_cells(file_path,color_dict):
     for col in ws:
         for cell in col:
             new_cell=new_sheet.cell(row = cell.row,column=cell.column,value =cell.value)
-            # new_cell.font = cell.font
+            # color by task
             if cell.value in color_dict:
                 new_cell.fill= PatternFill(start_color= color_dict[cell.value],end_color= color_dict[cell.value],fill_type="solid")
+            #add weekend colors
+            elif datetime.datetime(ws.cell(column=1,row=cell).value).weekday()==4 or datetime.datetime(ws.cell(column=1,row=cell).value).weekday()==5 :
+                new_cell.fill=PatternFill(start_color="e4e4e4" ,end_color="e4e4e4" ,fill_type="solid")
+                new_cell.font = Font(bold=True) 
+            #bold for titles
             else:
                 new_cell.font = Font(bold=True) 
     return new_book.save('./output/Butzi.xlsx')

@@ -18,7 +18,6 @@ def init_constraints(tasks_df, operators_df):
     add_operator_capacity_constraint(shifts_model, x_mat, operators, tasks)
     add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
     add_weekly_capactiy_constraint(shifts_model, x_mat, operators, tasks)
-
     return shifts_model
 
 
