@@ -4,6 +4,7 @@ from Modules.dataImporter import get_tasks_type_df
 from datetime import datetime
 from constants import *
 import math
+import numpy as np
 
 
 def init_constraints(tasks_df, operators_df):
@@ -20,7 +21,7 @@ def init_constraints(tasks_df, operators_df):
              for operator_id, operator in enumerate(x_mat)
              for task_id, task_x in operator.items()
              ) +
-        xsum(100*operator_variety_distance for operator_id, operator_variety_distance in enumerate(s_variety))
+        xsum(100*s_variety[operator_id] / operator["pazam"] for operator_id, operator in operators)
     )
 
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
@@ -118,8 +119,13 @@ def add_variety_constraint(model, x_mat, slack_variables, operators, tasks):
     for operator_id, operator in operators:
         relevant_tasks = [taskType for _, taskType in get_tasks_type_df().iterrows()
                           if is_operator_qualified(operator, taskType)]
-        target_number_of_tasks_per_type = 3 # operator["MAX"] / sum([task["cost"] for task in relevant_tasks])
+
+        # target_number_of_tasks_per_type = 3 # operator["MAX"] / sum([task["cost"] for task in relevant_tasks])
+        target_number_of_tasks = operator["MAX"] / np.mean([task["cost"] for task in relevant_tasks])
+        task_freq_modifier = sum(task['freq'] for task in relevant_tasks)
+
         for taskType in relevant_tasks:
+            target_number_of_tasks_per_type = target_number_of_tasks * taskType['freq'] / task_freq_modifier
             model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks if
                           (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
                      >= target_number_of_tasks_per_type - 1 - slack_variables[operator_id] \
