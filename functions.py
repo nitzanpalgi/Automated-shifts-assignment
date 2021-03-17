@@ -45,3 +45,6 @@ def is_task_overlapping(task_a, task_b):
 
 def is_task_holiday(task):
     return task["is_weekend"] == 1
+
+def is_task_night(task):
+    return task["start_time"].hour > 19
