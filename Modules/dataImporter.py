@@ -88,33 +88,43 @@ def recalculate_operators_capacity(operators, tasks):
 
 # Gets the path of the DB and return (tasks_df, operators_df) - 2 dataFrames
 def import_data_from_excel(path):
-    tasks_data = pd.read_excel(path, sheet_name="Tasks")
+    task_definition_df = pd.read_excel(path, sheet_name="Tasks")
     specific_tasks_data = pd.read_excel(path, sheet_name="Mishmarot")
-    tasks = distribute_tasks_in_month(tasks_data, specific_tasks_data)
+    tasks = distribute_tasks_in_month(task_definition_df, specific_tasks_data)
+
     print(len(tasks))
+
     tasks_df = format_tasks_list(tasks)
+
     operators_df = pd.read_excel(path, sheet_name="Operators")
 
     # Temp remove recalculation of capacity
     # operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
 
-    calc_tasks_types(tasks_data, tasks_df)
+    global task_types_df, compatible_tasks_groups_df
+    calc_task_types_df(task_definition_df, tasks_df)
+
+    compatible_tasks_groups_df = pd.read_excel(path, sheet_name="Task Groups")
+    task_types_df = calc_task_types_df(task_definition_df, tasks_df)
 
     return tasks_df, operators_df
 
 
-def get_tasks_type_df():
-    return tasks_type_df
+def get_task_types_df():
+    return task_types_df
+    
 
+def get_compatible_tasks_groups_df():
+    return compatible_tasks_groups_df
 
-def calc_tasks_types(data: DataFrame, all_tasks):
-    global tasks_type_df
+def calc_task_types_df(data: DataFrame, all_tasks):
+    task_types_df = data.drop_duplicates(subset=['type'])[['min_per_month', 'type', 'cost']]
 
-    tasks_type_df = data.drop_duplicates(subset=['type'])[['min_per_month', 'type', 'cost']]
-
-    tasks_type_df['freq'] = 0
+    task_types_df['freq'] = 0
     for task_type, task_frequency in (all_tasks['type'].value_counts() / len(all_tasks)).items():
-        tasks_type_df.loc[tasks_type_df.type == task_type, 'freq'] = task_frequency
+        task_types_df.loc[task_types_df.type == task_type, 'freq'] = task_frequency
+
+    return task_types_df
 
 
 def main():
