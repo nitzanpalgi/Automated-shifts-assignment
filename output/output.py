@@ -36,7 +36,8 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
 
     df = pd.DataFrame()
     # needs to get the shifts model
-    for i, v in enumerate(shifts_model.vars):
+
+    for i, v in enumerate([v for v in shifts_model.vars if v.name[0] == 'x']):
         if v.x >= 0.99:
             cell = v.name[2:]
             cell = cell[:-1]

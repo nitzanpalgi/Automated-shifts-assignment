@@ -64,7 +64,7 @@ def distribute_tasks_in_month(tasks_data):
 
 def recalculate_operators_capacity(operators, tasks):
     capacity_sum = sum(operators["MAX"])
-    tasks_cost_sum = sum(tasks[tasks["is_weekend"]==0]["cost"])
+    tasks_cost_sum = sum(tasks[tasks["is_weekend"] == 0]["cost"])
 
     return operators["MAX"] * (tasks_cost_sum / capacity_sum)
 
@@ -84,13 +84,14 @@ def import_data_from_excel(path):
 
     return tasks_df, operators_df
 
+
 def get_tasks_type_df():
     return tasks_type_df
 
 
 def calc_tasks_types(data: DataFrame):
     global tasks_type_df
-    tasks_type_df = data.drop_duplicates(subset=['type'])[['min_per_month', 'type']]
+    tasks_type_df = data.drop_duplicates(subset=['type'])[['min_per_month', 'type', 'cost']]
 
 
 def main():

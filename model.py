@@ -1,4 +1,4 @@
-from mip import Model, xsum, BINARY, minimize
+from mip import Model, xsum, BINARY, CONTINUOUS, minimize
 from functions import *
 from Modules.dataImporter import get_tasks_type_df
 from datetime import datetime
@@ -12,12 +12,14 @@ def init_constraints(tasks_df, operators_df):
     tasks = [row for row in tasks_df.iterrows()]
 
     x_mat = add_vars(shifts_model, operators, tasks)
+    s_variety = add_variety_slack_vars(shifts_model, operators)
 
     shifts_model.objective = minimize(
-        xsum(task_x * get_operator_task_cost(operators[operator_xs_id][1], tasks[task_xs_id][1])
-            for operator_xs_id, operator_xs in enumerate(x_mat)
-            for task_xs_id, task_x in operator_xs.items()
-        )
+        xsum(task_x * get_operator_task_cost(operators[operator_id][1], tasks[task_id][1])
+             for operator_id, operator in enumerate(x_mat)
+             for task_id, task_x in operator.items()
+             ) +
+        xsum(100*operator_variety_distance for operator_id, operator_variety_distance in enumerate(s_variety))
     )
 
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
@@ -26,6 +28,8 @@ def init_constraints(tasks_df, operators_df):
     add_operator_capacity_constraint_weekend(shifts_model, x_mat, operators, tasks)
     add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
     add_weekly_capactiy_constraint(shifts_model, x_mat, operators, tasks)
+    add_variety_constraint(shifts_model, x_mat, s_variety, operators, tasks)
+
     return shifts_model
 
 
@@ -56,6 +60,13 @@ def add_vars(shifts_model, operators, tasks):
     ]
 
 
+def add_variety_slack_vars(shifts_model, operators):
+    return [
+        shifts_model.add_var(f's_variety({operator_id})', var_type=CONTINUOUS)
+        for operator_id, operator in operators
+    ]
+
+
 def add_all_tasks_are_assigned_constrains(model, x_mat, operators, tasks):
     for task_id, task in tasks:
         model += xsum(x_mat[operator_id][task_id] for operator_id, operator in operators
@@ -82,7 +93,7 @@ def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks)
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_capable(operator, task) and not is_task_holiday(task)
-        ) >= operator["MAX"] * 0.6, f'min capacity-({operator_id})'
+        ) >= operator["MAX"] * 0.7, f'min capacity-({operator_id})'
 
 
 def add_operator_capacity_constraint_weekend(model, x_mat, operators, tasks):
@@ -100,6 +111,23 @@ def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):
                 model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks
                               if (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
                          >= taskType["min_per_month"], f'keep form-({operator_id},{taskType["type"]})'
+
+
+def add_variety_constraint(model, x_mat, slack_variables, operators, tasks):
+    for operator_id, operator in operators:
+        relevant_tasks = [taskType for _, taskType in get_tasks_type_df().iterrows()
+                          if is_operator_qualified(operator, taskType)]
+        target_number_of_tasks_per_type = operator["MAX"] / sum([task["cost"] for task in relevant_tasks])
+        for taskType in relevant_tasks:
+            model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks if
+                          (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
+                     >= target_number_of_tasks_per_type - 1 - slack_variables[operator_id] \
+                , f'variety min-({operator_id},{taskType["type"]})'
+
+            model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks if
+                          (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
+                     <= target_number_of_tasks_per_type + 1 + slack_variables[operator_id] \
+                , f'variety max-({operator_id},{taskType["type"]})'
 
 
 def add_weekly_capactiy_constraint(model, x_mat, operators, tasks):
