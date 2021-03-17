@@ -93,7 +93,7 @@ def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks)
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_capable(operator, task) and not is_task_holiday(task)
-        ) >= operator["MAX"] * 0.7, f'min capacity-({operator_id})'
+        ) >= operator["MAX"] * 0.5, f'min capacity-({operator_id})'
 
 
 def add_operator_capacity_constraint_weekend(model, x_mat, operators, tasks):
@@ -117,7 +117,7 @@ def add_variety_constraint(model, x_mat, slack_variables, operators, tasks):
     for operator_id, operator in operators:
         relevant_tasks = [taskType for _, taskType in get_tasks_type_df().iterrows()
                           if is_operator_qualified(operator, taskType)]
-        target_number_of_tasks_per_type = operator["MAX"] / sum([task["cost"] for task in relevant_tasks])
+        target_number_of_tasks_per_type = 3 # operator["MAX"] / sum([task["cost"] for task in relevant_tasks])
         for taskType in relevant_tasks:
             model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks if
                           (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
@@ -138,4 +138,4 @@ def add_weekly_capactiy_constraint(model, x_mat, operators, tasks):
             model += xsum(
                 task["cost"] * x_mat[operator_id][task_id] for task_id, task in relevant_tasks
                 if is_operator_capable(operator, task) and not is_task_holiday(task)
-            ) >= math.floor(operator["MAX"] * 0.2), f'weekly-capacity-({operator_id},{week_id}))'
+            ) >= math.floor(operator["MAX"] * 0.1), f'weekly-capacity-({operator_id},{week_id}))'
