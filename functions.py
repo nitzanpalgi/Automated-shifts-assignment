@@ -44,4 +44,4 @@ def is_task_overlapping(task_a, task_b):
 
 
 def is_task_holiday(task):
-    return task["is_weekend"]==1
+    return task["is_weekend"] == 1

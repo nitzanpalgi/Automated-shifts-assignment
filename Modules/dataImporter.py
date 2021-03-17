@@ -80,7 +80,7 @@ def import_data_from_excel(path):
     # Temp remove recalculation of capacity
     # operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
 
-    calc_tasks_types(tasks_data)
+    calc_tasks_types(tasks_data, tasks_df)
 
     return tasks_df, operators_df
 
@@ -89,9 +89,14 @@ def get_tasks_type_df():
     return tasks_type_df
 
 
-def calc_tasks_types(data: DataFrame):
+def calc_tasks_types(data: DataFrame, all_tasks):
     global tasks_type_df
+
     tasks_type_df = data.drop_duplicates(subset=['type'])[['min_per_month', 'type', 'cost']]
+
+    tasks_type_df['freq'] = 0
+    for task_type, task_frequency in (all_tasks['type'].value_counts() / len(all_tasks)).items():
+        tasks_type_df.loc[tasks_type_df.type == task_type, 'freq'] = task_frequency
 
 
 def main():
