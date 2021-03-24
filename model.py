@@ -22,17 +22,18 @@ def init_constraints(tasks_df, operators_df):
              for operator_id, operator in enumerate(x_mat)
              for task_id, task_x in operator.items()
              ) +
-        xsum(100*s_variety[operator_id] / operator["pazam"] for operator_id, operator in operators) +
+        xsum(100 * s_variety[operator_id] / operator["pazam"] for operator_id, operator in operators) +
 
         xsum(10 * s_weekly_capacity[operator_id][week_id]
              for operator_id, operator in operators
              for week_id, days_in_week in enumerate(get_days_in_week_in_current_month())
              )
-        )
+    )
 
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
     add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
-    add_operator_capacity_constraint_not_weekend(shifts_model, x_mat, operators, tasks, MAX_CAPACITY_NOT_WEEKEND, MIN_CAPACITY_NOT_WEEKEND)
+    add_operator_capacity_constraint_not_weekend(shifts_model, x_mat, operators, tasks, MAX_CAPACITY_NOT_WEEKEND,
+                                                 MIN_CAPACITY_NOT_WEEKEND)
     add_operator_capacity_constraint_weekend(shifts_model, x_mat, operators, tasks)
     add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
     add_weekly_capacity_constraint(shifts_model, x_mat, s_weekly_capacity, operators, tasks, MAX_WEEKLY_CAPACITY)
@@ -159,4 +160,5 @@ def add_weekly_capacity_constraint(model, x_mat, slack_variables, operators, tas
             model += xsum(
                 task["cost"] * x_mat[operator_id][task_id] for task_id, task in relevant_tasks
                 if is_operator_capable(operator, task) and not is_task_holiday(task)
-            ) >= math.floor(operator["MAX"] * max_config) + slack_variables[operator_id][week_id], f'weekly-capacity-({operator_id},{week_id}))'
+            ) >= math.floor(operator["MAX"] * max_config) - slack_variables[operator_id][
+                         week_id], f'weekly-capacity-({operator_id},{week_id}))'
