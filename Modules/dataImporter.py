@@ -33,32 +33,49 @@ def format_tasks_list(tasks):
 def US_day_to_IL_day(day):
     return ((day + 1) % 7) + 1
 
+def create_task(row_data, day):
+    date_time_str = f'{day} {row_data["start-hour"]}'
+    start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
+    end_time = start_time + timedelta(hours=row_data['time'])
+    new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'],
+                row_data['min_per_month'], row_data['id'], row_data['type'], row_data['is_sofash']]
+    return new_task
 
 # Handle row and add to task_list
 def distribute_tasks_in_day(row_data):
     tasks_in_day = []
     for day in get_days_in_current_month():
-        if random.rand() <= row_data['probability']:
+        # if random.rand() <= row_data['probability']:
+        if row_data['is_autofill']:
             if str(US_day_to_IL_day(day.weekday())) in str(row_data['days_in_week']):
-                date_time_str = f'{day} {row_data["start-hour"]}'
-                start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
-                end_time = start_time + timedelta(hours=row_data['time'])
-                new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'],
-                            row_data['min_per_month'], row_data['id'], row_data['type'], row_data['is_sofash']]
+                new_task = create_task(row_data, day)
                 tasks_in_day.append(new_task)
             else:
                 # print(f'task {row_data["name"]} cannot be at {day}')
                 pass
 
+
     return tasks_in_day
 
+def distribute_tasks_manual(row_data, specific_tasks_data):
+    task_name = row_data['name']
+    new_manual_tasks = []
+    manual_tasks = list(specific_tasks_data.columns.values)
+    if task_name in manual_tasks:
+        days_in_month = str(specific_tasks_data[task_name][0]).split(',')
+        days_in_month = list(map(lambda x: int(x), days_in_month))
+        for day in get_days_in_current_month():
+            if day.day in days_in_month:
+                new_task = create_task(row_data, day)
+                new_manual_tasks.append(new_task)
+    return new_manual_tasks
 
 # Spread tasks in month according to each task data
-def distribute_tasks_in_month(tasks_data):
+def distribute_tasks_in_month(tasks_data, specific_tasks_data):
     tasks = []
     for index, row_data in tasks_data.iterrows():
         tasks += distribute_tasks_in_day(row_data)
-
+        tasks += distribute_tasks_manual(row_data, specific_tasks_data)
     return tasks
 
 
@@ -72,7 +89,8 @@ def recalculate_operators_capacity(operators, tasks):
 # Gets the path of the DB and return (tasks_df, operators_df) - 2 dataFrames
 def import_data_from_excel(path):
     tasks_data = pd.read_excel(path, sheet_name="Tasks")
-    tasks = distribute_tasks_in_month(tasks_data)
+    specific_tasks_data = pd.read_excel(path, sheet_name="Mishmarot")
+    tasks = distribute_tasks_in_month(tasks_data, specific_tasks_data)
     print(len(tasks))
     tasks_df = format_tasks_list(tasks)
     operators_df = pd.read_excel(path, sheet_name="Operators")
