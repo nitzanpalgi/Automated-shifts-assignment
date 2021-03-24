@@ -5,7 +5,7 @@ import math
 
 
 def is_operator_capable(operator, task):
-    return is_operator_qualified(operator, task) and is_operator_strong_no_task(operator, task)
+    return is_operator_qualified(operator, task) and not is_operator_strong_no_task(operator, task)
 
 
 def is_operator_qualified(operator, task):
@@ -14,7 +14,21 @@ def is_operator_qualified(operator, task):
 
 def is_operator_strong_no_task(operator, task):
     not_task_days = [int(num) for num in str(operator['Not task']).split(',') if num != 'nan']
-    return not task['start_time'].day in not_task_days
+    return task['start_time'].day in not_task_days
+
+
+def dont_want_task(operator, task):
+    if str(operator["Not evening"]) == 'nan':
+        return False
+    unwanted_evenings = str(operator["Not evening"]).split(',')
+    current_date = datetime.datetime.now()
+    year, month = current_date.year, current_date.month
+
+    return any(
+        are_intervals_overlap((task["start_time"], task["end_time"]), (
+            datetime.datetime(year=year, month=month, day=int(evening), hour=18),
+            datetime.datetime(year=year, month=month, day=int(evening), hour=23, minute=59)))
+        for evening in unwanted_evenings)
 
 
 def get_days_in_current_month():
@@ -38,9 +52,12 @@ def is_task_in_week(week_num, task):
 
 
 def is_task_overlapping(task_a, task_b):
-    return not all(task_a == task_b) and \
-           (task_a['start_time'] <= task_b['start_time'] <= task_a['end_time'] or
-            task_b['start_time'] <= task_a['start_time'] <= task_b['end_time'])
+    return not all(task_a == task_b) and are_intervals_overlap((task_a['start_time'], task_a['end_time']),
+                                                               (task_b['start_time'], task_b['end_time']))
+
+
+def are_intervals_overlap(interval_a, interval_b):
+    return interval_a[0] <= interval_b[0] <= interval_a[1] or interval_b[0] <= interval_a[0] <= interval_b[1]
 
 
 def is_task_holiday(task):
