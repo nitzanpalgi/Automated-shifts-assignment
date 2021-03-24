@@ -38,6 +38,7 @@ def init_constraints(tasks_df, operators_df):
     add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
     add_weekly_capacity_constraint(shifts_model, x_mat, s_weekly_capacity, operators, tasks, MAX_WEEKLY_CAPACITY)
     add_variety_constraint(shifts_model, x_mat, s_variety, operators, tasks)
+    add_operator_capacity_constraint_nights(shifts_model, x_mat, operators, tasks, MAX_NIGHT_CAPACITY)
 
     return shifts_model
 
@@ -119,6 +120,14 @@ def add_operator_capacity_constraint_weekend(model, x_mat, operators, tasks):
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_capable(operator, task) and is_task_holiday(task)
         ) <= operator["MAX_Sofashim"], f'capacity-weekend-({operator_id})'
+
+
+def add_operator_capacity_constraint_nights(model, x_mat, operators, tasks, max_config):
+    for operator_id, operator in operators:
+        model += xsum(
+            task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
+            is_operator_capable(operator, task) and is_task_night(task) and not is_task_holiday(task)
+        ) <= operator["MAX_nights"] * max_config, f'capacity-nights-({operator_id})'
 
 
 def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):

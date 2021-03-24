@@ -19,7 +19,7 @@ def is_operator_strong_no_task(operator, task):
 
 def get_days_in_current_month():
     current_date = datetime.datetime.now()
-    year, month = current_date.year, current_date.month
+    year, month = current_date.year, current_date.month+1
     num_days = calendar.monthrange(year, month)[1]
     return [datetime.date(year, month, day) for day in range(1, num_days + 1)]
 
@@ -45,3 +45,6 @@ def is_task_overlapping(task_a, task_b):
 
 def is_task_holiday(task):
     return task["is_weekend"] == 1
+
+def is_task_night(task):
+    return task["start_time"].hour > 19
