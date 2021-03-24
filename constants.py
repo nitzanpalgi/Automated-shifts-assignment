@@ -4,3 +4,6 @@ MAX_CAPACITY_NOT_WEEKEND = 1.2
 
 # add_weekly_capactiy_constraint
 MAX_WEEKLY_CAPACITY = 0.15
+
+# month to calculate assignment
+OPTIMIZED_MONTH = 3

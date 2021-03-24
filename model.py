@@ -1,7 +1,6 @@
 from mip import Model, xsum, BINARY, CONTINUOUS, minimize
 from functions import *
 from Modules.dataImporter import get_tasks_type_df
-from datetime import datetime
 from constants import *
 import math
 import numpy as np
@@ -33,7 +32,7 @@ def init_constraints(tasks_df, operators_df):
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
     add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
     add_operator_capacity_constraint_not_weekend(shifts_model, x_mat, operators, tasks, MAX_CAPACITY_NOT_WEEKEND,
-                                                 MIN_CAPACITY_NOT_WEEKEND)
+                                                MIN_CAPACITY_NOT_WEEKEND)
     add_operator_capacity_constraint_weekend(shifts_model, x_mat, operators, tasks)
     add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
     add_weekly_capacity_constraint(shifts_model, x_mat, s_weekly_capacity, operators, tasks, MAX_WEEKLY_CAPACITY)
@@ -47,17 +46,6 @@ def get_operator_task_cost(operator, task):
         return (operator["pazam"] ** 2) * (task["cost"] + 10)
     else:
         return (operator["pazam"] ** 2) * task["cost"]
-
-
-def dont_want_task(operator, task):
-    if str(operator["Not evening"]) == 'nan':
-        return False
-    unwanted_evenings = str(operator["Not evening"]).split(',')
-    current_date = datetime.now()
-    year, month = current_date.year, current_date.month
-
-    return any(task["start_time"] <= datetime(year=year, month=month, day=int(evening), hour=18) <= task["end_time"]
-               for evening in unwanted_evenings)
 
 
 def add_vars(shifts_model, operators, tasks):
