@@ -78,7 +78,7 @@ def import_data_from_excel(path):
     operators_df = pd.read_excel(path, sheet_name="Operators")
 
     # Temp remove recalculation of capacity
-    # operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
+    operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
 
     calc_tasks_types(tasks_data, tasks_df)
 
