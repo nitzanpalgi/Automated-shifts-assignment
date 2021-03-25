@@ -4,9 +4,13 @@ from functions import *
 from datetime import timedelta, date
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
-from openpyxl.styles import Color, PatternFill, Fill, Font, Border,Alignment
+from openpyxl.styles import Color, PatternFill, Fill, Font, Border, Alignment
 from openpyxl.cell import Cell
 import datetime
+
+from output.statistics import add_statistics
+
+
 # dataframe for each operator as row
 
 
@@ -15,6 +19,7 @@ def create_operators_dataframe(operators):
     for date in get_days_in_current_month():
         df = df.append({"Date": date}, ignore_index=True)
     return df
+
 
 # dataframe for each task as a row
 
@@ -58,10 +63,13 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
                 next_day_start_time = str(nextDay).split(' ')[0]
                 df.at[operator_name, next_day_start_time] = 'MALAM'
             elif 'night' in task_name:
-                if(nextDay.weekday() != 4):
+                if (nextDay.weekday() != 4):
                     df.at[operator_name, next_day_start_time] = 'MALAM'
 
     colors_dict = create_colors_dict(tasks_df_colors)
+
+    add_statistics(shifts_model, df, operators, tasks)
+
     df = df.sort_index(1)
     return df, colors_dict
 
@@ -71,7 +79,7 @@ def create_colors_dict(color_df):
     colors_dict = {}
     for i in range(len(colors_dict_from_df["name"])):
         colors_dict[colors_dict_from_df["name"][i]
-                    ] = colors_dict_from_df["color"][i][1:]
+        ] = colors_dict_from_df["color"][i][1:]
     return colors_dict
 
 
@@ -84,23 +92,28 @@ def color_cells(file_path, color_dict):
     max_row = int(ws.max_row)
     for col in ws:
         for cell in col:
-            new_cell = new_sheet.cell(
-                row=cell.row, column=cell.column, value=cell.value)
-            # color by task
-            if cell.value in color_dict:
-                new_cell.fill = PatternFill(
-                    start_color=color_dict[cell.value], end_color=color_dict[cell.value], fill_type="solid")
-            # add weekend colors
-            elif cell.value == 'MALAM':
-                new_cell.fill = PatternFill(start_color='e5e5e5', end_color='f5f5f5', fill_type='solid')
-            elif cell.row > 1 and (datetime.datetime.strptime(ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 4
-                                   or datetime.datetime.strptime(ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 5):
-                new_cell.fill = PatternFill(
-                    start_color="e4e4e4", end_color="e4e4e4", fill_type="solid")
-                new_cell.font = Font(bold=True)
-            # bold for titles
-            else:
-                new_cell.font = Font(bold=True)
+            try:
+                new_cell = new_sheet.cell(
+                    row=cell.row, column=cell.column, value=cell.value)
+                # color by task
+                if cell.value in color_dict:
+                    new_cell.fill = PatternFill(
+                        start_color=color_dict[cell.value], end_color=color_dict[cell.value], fill_type="solid")
+                # add weekend colors
+                elif cell.value == 'MALAM':
+                    new_cell.fill = PatternFill(start_color='e5e5e5', end_color='f5f5f5', fill_type='solid')
+                elif cell.row > 1 and (
+                        datetime.datetime.strptime(ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 4
+                        or datetime.datetime.strptime(ws.cell(cell.row, 1, ).value,
+                                                      '%Y-%m-%d').weekday() == 5):
+                    new_cell.fill = PatternFill(
+                        start_color="e4e4e4", end_color="e4e4e4", fill_type="solid")
+                    new_cell.font = Font(bold=True)
+                # bold for titles
+                else:
+                    new_cell.font = Font(bold=True)
+            except:
+                pass
 
     return new_book.save('./output/Butzi.xlsx')
 
