@@ -87,7 +87,7 @@ def add_task_overlap_constrains(model, x_mat, operators, tasks):
         for operator_id, operator in operators:
             operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks 
                 if is_operator_capable(operator, task)]
-            for group in compatible_tasks_groups:
+            for _, group in compatible_tasks_groups:
                 not_in_group_xsum = xsum(x_mat[operator_id][task_id] 
                     for task_id, task in operator_relevant_tasks if not is_task_in_group(task, group))
                 in_group_xsum = xsum(x_mat[operator_id][task_id] 

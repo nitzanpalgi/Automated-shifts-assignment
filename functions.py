@@ -69,4 +69,4 @@ def is_task_night(task):
 
 
 def is_task_in_group(task, group):
-    return task["compat_group"] == group["id"]
+    return task["compat_group"] == group["name"]
