@@ -26,7 +26,9 @@ def init_constraints(tasks_df, operators_df):
         xsum(10 * s_weekly_capacity[operator_id][week_id]
              for operator_id, operator in operators
              for week_id, days_in_week in enumerate(get_days_in_week_in_current_month())
-             )
+             ) +
+        xsum(50 * s_working_days[operator_id][day.day-1]
+             for operator_id, operator in operators for day in get_days_in_current_month())
     )
 
     add_all_tasks_are_assigned_constrains(
@@ -72,8 +74,8 @@ def add_variety_slack_vars(shifts_model, operators):
 
 def add_working_days_slack_vars(shifts_model, operators):
     return [
-        shifts_model.add_var(f's_working_days({operator_id})', var_type=BINARY)
-        for day in get_days_in_current_month() for operator_id, operator in operators
+        [shifts_model.add_var(f's_working_days({operator_id},{day})', var_type=BINARY)
+         for day in get_days_in_current_month()] for operator_id, operator in operators
     ]
 
 
@@ -93,20 +95,22 @@ def add_all_tasks_are_assigned_constrains(model, x_mat, operators, tasks):
 
 def add_task_overlap_constrains(model, x_mat, operators, tasks):
     for day in get_days_in_current_month():
-        relevant_tasks = [(task_id, task) for task_id, task in tasks if task["start_time"] <= day <= task["end_time"]]
-        compatible_tasks_groups = [row for row in get_compatible_tasks_groups_df().iterrows()]
+        relevant_tasks = [(task_id, task) for task_id,
+                          task in tasks if task["start_time"] <= day <= task["end_time"]]
+        compatible_tasks_groups = [
+            row for row in get_compatible_tasks_groups_df().iterrows()]
 
         for operator_id, operator in operators:
-            operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks 
-                if is_operator_capable(operator, task)]
+            operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks
+                                       if is_operator_capable(operator, task)]
             for _, group in compatible_tasks_groups:
-                not_in_group_xsum = xsum(x_mat[operator_id][task_id] 
-                    for task_id, task in operator_relevant_tasks if not is_task_in_group(task, group))
-                in_group_xsum = xsum(x_mat[operator_id][task_id] 
-                    for task_id, task in operator_relevant_tasks if is_task_in_group(task, group))
+                not_in_group_xsum = xsum(x_mat[operator_id][task_id]
+                                         for task_id, task in operator_relevant_tasks if not is_task_in_group(task, group))
+                in_group_xsum = xsum(x_mat[operator_id][task_id]
+                                     for task_id, task in operator_relevant_tasks if is_task_in_group(task, group))
 
-                model += in_group_xsum <= (1 - not_in_group_xsum) * group["max_per_day"] \
-                , f'overlapping-({operator_id},{day.day},{group["name"]}))'
+                model += in_group_xsum <= (1 - not_in_group_xsum) * \
+                    group["max_per_day"], f'overlapping-({operator_id},{day.day},{group["name"]}))'
 
 
 def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks, max_config, min_config):
@@ -180,8 +184,7 @@ def add_weekly_capacity_constraint(model, x_mat, slack_variables, operators, tas
             model += xsum(
                 task["cost"] * x_mat[operator_id][task_id] for task_id, task in relevant_tasks
                 if is_operator_capable(operator, task) and not is_task_holiday(task)
-            ) >= math.floor(operator["MAX"] * max_config) - slack_variables[operator_id][
-                week_id], f'weekly-capacity-({operator_id},{week_id}))'
+            ) >= math.floor(operator["MAX"] * max_config) - slack_variables[operator_id][week_id], f'weekly-capacity-({operator_id},{week_id}))'
 
 
 def add_working_days_int(model, x_mat, slack_variables, operators, tasks):
@@ -189,18 +192,17 @@ def add_working_days_int(model, x_mat, slack_variables, operators, tasks):
         relevant_tasks = [(task_id, task) for task_id,
                           task in tasks if task["start_time"] <= day <= task["end_time"]]
         for operator_id, operator in operators:
-            operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks 
-                if is_operator_capable(operator, task)]    
-            tasks_in_day = xsum(x_mat[operator_id][task_id] 
-                    for task_id, task in operator_relevant_tasks)
-            model += tasks_in_day<=1, f'working-days-({operator_id},{day.day}))'
-                         week_id], f'weekly-capacity-({operator_id},{week_id}))'
+            operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks
+                                       if is_operator_capable(operator, task)]
+            tasks_in_day = xsum(x_mat[operator_id][task_id]
+                                for task_id, task in operator_relevant_tasks)
+            model += tasks_in_day <= 1 - slack_variables[operator_id][day.day-1], f'working-days-({operator_id},{day.day}))'
 
 
 def add_operator_capacity_constraint_nights(model, x_mat, operators, tasks, max_config):
     for operator_id, operator in operators:
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
-            is_operator_capable(operator, task) and is_task_night(task) and not is_task_holiday(task)
+            is_operator_capable(operator, task) and is_task_night(
+                task) and not is_task_holiday(task)
         ) <= operator["MAX_nights"] * max_config, f'capacity-nights-({operator_id})'
-
