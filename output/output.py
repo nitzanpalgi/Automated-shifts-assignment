@@ -114,6 +114,7 @@ def create_shift_dict(shifts_model, tasks, operators, DB_path):
             if by_date_dict[task_start_time].get(operator_name) == None:
                 by_date_dict[task_start_time][operator_name] = task_name+"&"+str(cell_y)
             else:
+                print("mikbul")
                 by_date_dict[task_start_time][operator_name] = by_date_dict[task_start_time][operator_name]+"_"+task_name+"&"+str(cell_y)
             # if by_date_dict.get(task_start_time)
     return by_date_dict

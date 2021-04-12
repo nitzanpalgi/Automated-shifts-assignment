@@ -196,7 +196,7 @@ def add_working_days_int(model, x_mat, slack_variables, operators, tasks):
                                        if is_operator_capable(operator, task)]
             tasks_in_day = xsum(x_mat[operator_id][task_id]
                                 for task_id, task in operator_relevant_tasks)
-            model += tasks_in_day <= 1 - slack_variables[operator_id][day.day-1], f'working-days-({operator_id},{day.day}))'
+            model += tasks_in_day <= 3 - slack_variables[operator_id][day.day-1], f'working-days-({operator_id},{day.day}))'
 
 
 def add_operator_capacity_constraint_nights(model, x_mat, operators, tasks, max_config):
