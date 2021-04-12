@@ -15,7 +15,7 @@ def init_constraints(tasks_df, operators_df):
     x_mat = add_vars(shifts_model, operators, tasks)
     s_weekly_capacity = add_weekly_capacity_slack_vars(shifts_model, operators)
     s_variety = add_variety_slack_vars(shifts_model, operators)
-
+    s_working_days = add_working_days_slack_vars(shifts_model, operators)
     shifts_model.objective = minimize(
         xsum(task_x * get_operator_task_cost(operators[operator_id][1], tasks[task_id][1])
              for operator_id, operator in enumerate(x_mat)
@@ -43,7 +43,7 @@ def init_constraints(tasks_df, operators_df):
     add_variety_constraint(shifts_model, x_mat, s_variety, operators, tasks)
     add_operator_capacity_constraint_nights(
         shifts_model, x_mat, operators, tasks, MAX_NIGHT_CAPACITY)
-
+    add_working_days_int(shifts_model, x_mat, s_working_days, operators, tasks)
     return shifts_model
 
 
@@ -67,6 +67,13 @@ def add_variety_slack_vars(shifts_model, operators):
     return [
         shifts_model.add_var(f's_variety({operator_id})', var_type=CONTINUOUS)
         for operator_id, operator in operators
+    ]
+
+
+def add_working_days_slack_vars(shifts_model, operators):
+    return [
+        shifts_model.add_var(f's_working_days({operator_id})', var_type=BINARY)
+        for day in get_days_in_current_month() for operator_id, operator in operators
     ]
 
 
@@ -169,12 +176,13 @@ def add_weekly_capacity_constraint(model, x_mat, slack_variables, operators, tas
                 week_id], f'weekly-capacity-({operator_id},{week_id}))'
 
 
-def add_working_days_int(model, x_mat,slack_variables, operators, tasks):
+def add_working_days_int(model, x_mat, slack_variables, operators, tasks):
     for day in get_days_in_current_month():
         relevant_tasks = [(task_id, task) for task_id,
                           task in tasks if task["start_time"] <= day <= task["end_time"]]
         for operator_id, operator in operators:
-            shifts_in_day = xsum(x_mat[operator_id])
-            model += xsum(
-                x_mat[operator_id][task_id] for task_id, task in relevant_tasks
-                if is_operator_capable(operator, task)) <= 1, f'working-days-({operator_id},{day.day}))'
+            operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks 
+                if is_operator_capable(operator, task)]    
+            tasks_in_day = xsum(x_mat[operator_id][task_id] 
+                    for task_id, task in operator_relevant_tasks)
+            model += tasks_in_day<=1, f'working-days-({operator_id},{day.day}))'
