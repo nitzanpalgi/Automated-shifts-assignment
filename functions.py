@@ -65,3 +65,6 @@ def is_task_holiday(task):
 
 def is_task_night(task):
     return task["start_time"].hour > 19
+
+def is_task_in_a_day(task,day):
+    return task["start_time"].date()==day
