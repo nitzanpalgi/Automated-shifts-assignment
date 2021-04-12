@@ -39,7 +39,6 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
     tasks_df_multiple = create_task_dataframe(DB_path)
     tasks_df = tasks_df_multiple[0]
     tasks_df_colors = tasks_df_multiple[1]
-
     df = pd.DataFrame()
     by_date_dict = create_shift_dict(shifts_model, tasks, operators, DB_path)
     # needs to get the shifts model
@@ -67,12 +66,16 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
                 elif 'night' in task_name:
                     if (nextDay.weekday() != 4):
                         df.at[operator_name, next_day_start_time] = 'MALAM'
-
+    for index,row in operators.iterrows():
+        df.at[row['name'],'pazam']=row['MAX']
+        # df.at[operator['name']]
     colors_dict = create_colors_dict(tasks_df_colors)
 
     add_statistics(shifts_model, df, operators, tasks)
 
     df = df.sort_index(1)
+    df = df.sort_values(by='pazam',ascending=False)
+    df = df.drop('pazam',axis='columns')
     return df, colors_dict
 def remove_cell_sign(task_name):
     if "_"not in task_name:
