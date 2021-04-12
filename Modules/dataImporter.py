@@ -16,6 +16,7 @@ def format_tasks_list(tasks):
     ids = [task[6] for task in tasks]
     types = [task[7] for task in tasks]
     is_weekends = [task[8] for task in tasks]
+    compat_groups = [task[9] for task in tasks]
 
     return pd.DataFrame({
         'id': ids,
@@ -26,7 +27,8 @@ def format_tasks_list(tasks):
         'Compatible': Compatible,
         'min_per_month': min_per_month,
         "type": types,
-        "is_weekend": is_weekends
+        "is_weekend": is_weekends,
+        "compat_group": compat_groups
     })
 
 
@@ -38,7 +40,9 @@ def create_task(row_data, day):
     start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
     end_time = start_time + timedelta(hours=row_data['time'])
     new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'],
-                row_data['min_per_month'], row_data['id'], row_data['type'], row_data['is_sofash']]
+                row_data['min_per_month'], row_data['id'], row_data['type'], 
+                row_data['is_sofash'], row_data['compat_group']]
+
     return new_task
 
 # Handle row and add to task_list
@@ -53,7 +57,6 @@ def distribute_tasks_in_day(row_data):
             else:
                 # print(f'task {row_data["name"]} cannot be at {day}')
                 pass
-
 
     return tasks_in_day
 
