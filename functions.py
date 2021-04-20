@@ -78,3 +78,8 @@ def is_task_in_group(task, group):
 
 def is_task_in_a_day(task,day):
     return task["start_time"].date()==day
+
+
+def is_task_in_split_group(task):
+    return task["split_group"] == ""
+ 

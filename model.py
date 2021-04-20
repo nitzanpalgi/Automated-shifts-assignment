@@ -99,7 +99,24 @@ def add_parallel_tasks_group_slack_vars(shifts_model, operators, compatible_grou
 def add_all_tasks_are_assigned_constrains(model, x_mat, operators, tasks):
     for task_id, task in tasks:
         model += xsum(x_mat[operator_id][task_id] for operator_id, operator in operators
-                      if is_operator_capable(operator, task)) == 1, f'task({task_id})'
+            if is_operator_capable(operator, task) and not is_task_in_split_group(task)
+        ) == 1 , f'task({task_id})'
+
+    split_groups = {}
+
+    for task_id, task in tasks:
+        if (is_task_in_split_group(task)):
+            split_group_key = task["split_group"].split("-")[0]
+            if (split_group_key in split_groups):
+                split_groups[split_group_key].append((task_id, task))
+            else:
+                split_groups[split_group_key] = []
+
+    for group_id in split_groups:
+        model += xsum(
+            x_mat[operator_id][task_id] for operator_id, operator in operators
+            if is_operator_capable(operator, task)
+        )
 
 
 def add_task_overlap_constrains(model, x_mat, s_groups, operators, tasks, compatible_groups, task_types):
