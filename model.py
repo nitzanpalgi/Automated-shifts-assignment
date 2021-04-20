@@ -1,6 +1,6 @@
 from mip import Model, xsum, BINARY, CONTINUOUS, minimize
 from functions import *
-from Modules.dataImporter import get_tasks_type_df
+from Modules.dataImporter import get_compatible_tasks_groups_df, get_task_types_df
 from constants import *
 import math
 import numpy as np
@@ -82,10 +82,19 @@ def add_all_tasks_are_assigned_constrains(model, x_mat, operators, tasks):
 def add_task_overlap_constrains(model, x_mat, operators, tasks):
     for day in get_days_in_current_month():
         relevant_tasks = [(task_id, task) for task_id, task in tasks if task["start_time"] <= day <= task["end_time"]]
+        compatible_tasks_groups = [row for row in get_compatible_tasks_groups_df().iterrows()]
+
         for operator_id, operator in operators:
-            model += xsum(
-                x_mat[operator_id][task_id] for task_id, task in relevant_tasks
-                if is_operator_capable(operator, task)) <= 1, f'overlapping-({operator_id},{day.day}))'
+            operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks 
+                if is_operator_capable(operator, task)]
+            for _, group in compatible_tasks_groups:
+                not_in_group_xsum = xsum(x_mat[operator_id][task_id] 
+                    for task_id, task in operator_relevant_tasks if not is_task_in_group(task, group))
+                in_group_xsum = xsum(x_mat[operator_id][task_id] 
+                    for task_id, task in operator_relevant_tasks if is_task_in_group(task, group))
+
+                model += in_group_xsum <= (1 - not_in_group_xsum) * group["max_per_day"] \
+                , f'overlapping-({operator_id},{day.day},{group["name"]}))'
 
 
 def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks, max_config, min_config):
@@ -120,7 +129,7 @@ def add_operator_capacity_constraint_nights(model, x_mat, operators, tasks, max_
 
 def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):
     for operator_id, operator in operators:
-        for _, taskType in get_tasks_type_df().iterrows():
+        for _, taskType in get_task_types_df().iterrows():
             if is_operator_qualified(operator, taskType) and taskType["min_per_month"] > 0:
                 model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks
                               if (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
@@ -129,7 +138,7 @@ def add_operator_min_per_month_constraint(model, x_mat, operators, tasks):
 
 def add_variety_constraint(model, x_mat, slack_variables, operators, tasks):
     for operator_id, operator in operators:
-        relevant_tasks = [taskType for _, taskType in get_tasks_type_df().iterrows()
+        relevant_tasks = [taskType for _, taskType in get_task_types_df().iterrows()
                           if is_operator_qualified(operator, taskType)]
 
         # target_number_of_tasks_per_type = 3 # operator["MAX"] / sum([task["cost"] for task in relevant_tasks])

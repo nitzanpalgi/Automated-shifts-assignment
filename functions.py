@@ -67,5 +67,10 @@ def are_intervals_overlap(interval_a, interval_b):
 def is_task_holiday(task):
     return task["is_weekend"] == 1
 
+
 def is_task_night(task):
     return task["start_time"].hour > 19
+
+
+def is_task_in_group(task, group):
+    return task["compat_group"] == group["name"]

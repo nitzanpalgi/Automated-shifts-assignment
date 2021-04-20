@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 from Modules import dataImporter
 from functions import *
 from datetime import timedelta, date
@@ -38,8 +39,66 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
     tasks_df_multiple = create_task_dataframe(DB_path)
     tasks_df = tasks_df_multiple[0]
     tasks_df_colors = tasks_df_multiple[1]
+    df = pd.DataFrame()
+    by_date_dict = create_shift_dict(shifts_model, tasks, operators, DB_path)
+    # needs to get the shifts model
+    # parent key is date key is operator and value is task
+    for parent_key, parent_value in by_date_dict.items():
+        if type(parent_value) is dict:
+            for key, value in parent_value.items():
+                task_start_time = parent_key
+                operator_name = key
+                task_name = value
+                df.at[operator_name, task_start_time] = remove_cell_sign(task_name)
+                # if this is sofash write the next day too
+                cell_y = task_name.split("&")[1]
+                if ("_" in task_name):
+                    cell_y = task_name.split("_")[0].split("&")[1]
+                cell_y=int(cell_y)
+                nextDay = tasks['start_time'][cell_y] + timedelta(days=1)
+                next_day_start_time = str(nextDay).split(' ')[0]
+
+                if 'Sofash' in task_name:
+                    df.at[operator_name, next_day_start_time] = remove_cell_sign(task_name)
+                    nextDay = nextDay + timedelta(days=1)
+                    next_day_start_time = str(nextDay).split(' ')[0]
+                    df.at[operator_name, next_day_start_time] = 'MALAM'
+                elif 'night' in task_name:
+                    if (nextDay.weekday() != 4):
+                        df.at[operator_name, next_day_start_time] = 'MALAM'
+    for index,row in operators.iterrows():
+        df.at[row['name'],'pazam']=row['MAX']
+        # df.at[operator['name']]
+    colors_dict = create_colors_dict(tasks_df_colors)
+
+    add_statistics(shifts_model, df, operators, tasks)
+
+    df = df.sort_index(1)
+    df = df.sort_values(by='pazam',ascending=False)
+    df = df.drop('pazam',axis='columns')
+    return df, colors_dict
+    
+def remove_cell_sign(task_name):
+    if "_"not in task_name:
+        return task_name.split("&")[0]
+    split_tasks = task_name.split("_")
+    new_name= ""
+    for  i in range (len(split_tasks)):
+        if i< len(split_tasks)-1:
+            new_name+=split_tasks[i].split("&")[0]+"_"
+        else:
+            new_name+=split_tasks[i].split("&")[0]
+    return new_name
+
+
+def create_shift_dict(shifts_model, tasks, operators, DB_path):
+    operators_df = create_operators_dataframe(operators)
+    tasks_df_multiple = create_task_dataframe(DB_path)
+    tasks_df = tasks_df_multiple[0]
+    tasks_df_colors = tasks_df_multiple[1]
 
     df = pd.DataFrame()
+    by_date_dict = {}
     # needs to get the shifts model
 
     for i, v in enumerate([v for v in shifts_model.vars if v.name[0] == 'x']):
@@ -51,28 +110,14 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
             operator_name = operators['name'][cell_x]
             task_name = tasks['name'][cell_y]
             task_start_time = str(tasks['start_time'][cell_y]).split(' ')[0]
-            df.at[operator_name, task_start_time] = task_name
-
-            # if this is sofash write the next day too
-            nextDay = tasks['start_time'][cell_y] + timedelta(days=1)
-            next_day_start_time = str(nextDay).split(' ')[0]
-
-            if 'Sofash' in task_name:
-                df.at[operator_name, next_day_start_time] = task_name
-                nextDay = nextDay + timedelta(days=1)
-                next_day_start_time = str(nextDay).split(' ')[0]
-                df.at[operator_name, next_day_start_time] = 'MALAM'
-            elif 'night' in task_name:
-                if (nextDay.weekday() != 4):
-                    df.at[operator_name, next_day_start_time] = 'MALAM'
-
-    colors_dict = create_colors_dict(tasks_df_colors)
-
-    df = df.sort_index(1)
-
-    add_statistics(shifts_model, df, operators, tasks)
-
-    return df, colors_dict
+            if by_date_dict.get(task_start_time) == None:
+                by_date_dict[task_start_time] = {}
+            if by_date_dict[task_start_time].get(operator_name) == None:
+                by_date_dict[task_start_time][operator_name] = task_name+"&"+str(cell_y)
+            else:
+                by_date_dict[task_start_time][operator_name] = by_date_dict[task_start_time][operator_name]+"_"+task_name+"&"+str(cell_y)
+            # if by_date_dict.get(task_start_time)
+    return by_date_dict
 
 
 def create_colors_dict(color_df):
@@ -80,7 +125,7 @@ def create_colors_dict(color_df):
     colors_dict = {}
     for i in range(len(colors_dict_from_df["name"])):
         colors_dict[colors_dict_from_df["name"][i]
-        ] = colors_dict_from_df["color"][i][1:]
+                    ] = colors_dict_from_df["color"][i][1:]
     return colors_dict
 
 
@@ -102,9 +147,11 @@ def color_cells(file_path, color_dict):
                         start_color=color_dict[cell.value], end_color=color_dict[cell.value], fill_type="solid")
                 # add weekend colors
                 elif cell.value == 'MALAM':
-                    new_cell.fill = PatternFill(start_color='e5e5e5', end_color='f5f5f5', fill_type='solid')
+                    new_cell.fill = PatternFill(
+                        start_color='e5e5e5', end_color='f5f5f5', fill_type='solid')
                 elif cell.row > 1 and (
-                        datetime.datetime.strptime(ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 4
+                        datetime.datetime.strptime(
+                            ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 4
                         or datetime.datetime.strptime(ws.cell(cell.row, 1, ).value,
                                                       '%Y-%m-%d').weekday() == 5):
                     new_cell.fill = PatternFill(
