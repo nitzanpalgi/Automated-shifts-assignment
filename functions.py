@@ -3,6 +3,7 @@ import calendar
 from numpy import count_nonzero
 import math
 
+NEXT_MONTH = False
 
 def is_operator_capable(operator, task):
     return is_operator_qualified(operator, task) and not is_operator_strong_no_task(operator, task)
@@ -33,7 +34,9 @@ def dont_want_task(operator, task):
 
 def get_days_in_current_month():
     current_date = datetime.datetime.now()
-    year, month = current_date.year, current_date.month+1
+    year, month = current_date.year, current_date.month
+    if NEXT_MONTH:
+        month += 1
     num_days = calendar.monthrange(year, month)[1]
     return [datetime.date(year, month, day) for day in range(1, num_days + 1)]
 
@@ -41,7 +44,8 @@ def get_days_in_current_month():
 def get_days_in_week_in_current_month():
     current_date = datetime.datetime.now()
     year, month = current_date.year, current_date.month
-    month = month + 1
+    if NEXT_MONTH:
+        month += 1
     weeks = calendar.monthcalendar(year, month)
     days_in_week = [count_nonzero(week) for week in weeks]
     return days_in_week

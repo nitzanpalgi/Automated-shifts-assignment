@@ -68,9 +68,10 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
 
     colors_dict = create_colors_dict(tasks_df_colors)
 
+    df = df.sort_index(1)
+
     add_statistics(shifts_model, df, operators, tasks)
 
-    df = df.sort_index(1)
     return df, colors_dict
 
 
@@ -116,17 +117,3 @@ def color_cells(file_path, color_dict):
                 pass
 
     return new_book.save('./output/Butzi.xlsx')
-
-
-def main():
-    shifts_model = {}
-    DB_path = '../DATA/DB.xlsx'
-    tasks, operators = dataImporter.import_data_from_excel(DB_path)
-    operators_df, tasks_df = convert_to_readable_df(
-        shifts_model, tasks, operators, DB_path)
-    operators_df.to_excel("./operators_data.xlsx")
-    tasks_df.to_excel("./tasks_data.xlsx")
-
-
-if __name__ == "__main__":
-    main()
