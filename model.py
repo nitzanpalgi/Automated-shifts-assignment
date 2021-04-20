@@ -11,9 +11,11 @@ def init_constraints(tasks_df, operators_df):
 
     operators = [row for row in operators_df.iterrows()]
     tasks = [row for row in tasks_df.iterrows()]
+    compatible_groups = [group for group in get_compatible_tasks_groups_df().iterrows()]
 
     x_mat = add_vars(shifts_model, operators, tasks)
     s_weekly_capacity = add_weekly_capacity_slack_vars(shifts_model, operators)
+    s_parallel_tasks_groups = add_parallel_tasks_group_slack_vars(shifts_model, operators, compatible_groups)
     s_variety = add_variety_slack_vars(shifts_model, operators)
 
     shifts_model.objective = minimize(
@@ -30,7 +32,7 @@ def init_constraints(tasks_df, operators_df):
     )
 
     add_all_tasks_are_assigned_constrains(shifts_model, x_mat, operators, tasks)
-    add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
+    add_task_overlap_constrains(shifts_model, x_mat, s_parallel_tasks_groups, operators, tasks, compatible_groups)
     add_operator_capacity_constraint_not_weekend(shifts_model, x_mat, operators, tasks, MAX_CAPACITY_NOT_WEEKEND,
                                                 MIN_CAPACITY_NOT_WEEKEND)
     add_operator_capacity_constraint_weekend(shifts_model, x_mat, operators, tasks, INCREASE_MAX_SOFASHIM)
@@ -72,6 +74,17 @@ def add_weekly_capacity_slack_vars(shifts_model, operators):
         for operator_id, operator in operators
     ]
 
+    
+def add_parallel_tasks_group_slack_vars(shifts_model, operators, compatible_groups):
+    return [
+        [
+            [
+                shifts_model.add_var(f'parallel tasks group({day.day},{operator_id},{group_id})', var_type=BINARY)
+                for group_id, group in compatible_groups
+            ] for operator_id, operator in operators
+        ] for day in get_days_in_current_month()
+    ]
+
 
 def add_all_tasks_are_assigned_constrains(model, x_mat, operators, tasks):
     for task_id, task in tasks:
@@ -79,22 +92,23 @@ def add_all_tasks_are_assigned_constrains(model, x_mat, operators, tasks):
                       if is_operator_capable(operator, task)) == 1, f'task({task_id})'
 
 
-def add_task_overlap_constrains(model, x_mat, operators, tasks):
-    for day in get_days_in_current_month():
+def add_task_overlap_constrains(model, x_mat, s_groups, operators, tasks, compatible_groups):
+    for day_id, day in enumerate(get_days_in_current_month()):
         relevant_tasks = [(task_id, task) for task_id, task in tasks if task["start_time"] <= day <= task["end_time"]]
-        compatible_tasks_groups = [row for row in get_compatible_tasks_groups_df().iterrows()]
 
         for operator_id, operator in operators:
             operator_relevant_tasks = [(task_id, task) for (task_id, task) in relevant_tasks 
                 if is_operator_capable(operator, task)]
-            for _, group in compatible_tasks_groups:
-                not_in_group_xsum = xsum(x_mat[operator_id][task_id] 
-                    for task_id, task in operator_relevant_tasks if not is_task_in_group(task, group))
+
+            model += xsum(s_groups[day_id][operator_id][group_id] for group_id, _ in compatible_groups) <= 1 \
+            , f'max group-({day.day},{operator_id})'
+
+            for group_id, group in compatible_groups:
                 in_group_xsum = xsum(x_mat[operator_id][task_id] 
                     for task_id, task in operator_relevant_tasks if is_task_in_group(task, group))
 
-                model += in_group_xsum <= (1 - not_in_group_xsum) * group["max_per_day"] \
-                , f'overlapping-({operator_id},{day.day},{group["name"]}))'
+                model += in_group_xsum <= s_groups[day_id][operator_id][group_id] * group["max_per_day"] \
+                , f'group max per day-({operator_id},{day.day},{group["name"]}))'
 
 
 def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks, max_config, min_config):
