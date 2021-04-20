@@ -5,6 +5,7 @@ import math
 
 NEXT_MONTH = False
 
+
 def is_operator_capable(operator, task):
     return is_operator_qualified(operator, task) and not is_operator_strong_no_task(operator, task)
 
@@ -76,5 +77,5 @@ def is_task_in_group(task, group):
     return task["compat_group"] == group["name"]
 
 
-def is_task_in_a_day(task,day):
-    return task["start_time"].date()==day
+def is_task_in_a_day(task, day):
+    return task["start_time"].date() == day
