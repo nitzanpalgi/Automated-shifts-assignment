@@ -71,11 +71,11 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
         # df.at[operator['name']]
     colors_dict = create_colors_dict(tasks_df_colors)
 
-    add_statistics(shifts_model, df, operators, tasks)
 
     df = df.sort_index(1)
-    df = df.sort_values(by='pazam',ascending=False)
-    df = df.drop('pazam',axis='columns')
+    add_statistics(shifts_model, df, operators, tasks)
+    # df = df.sort_values(by='pazam',ascending=False)
+    # df = df.drop('pazam',axis='columns')
     return df, colors_dict
     
 def remove_cell_sign(task_name):
