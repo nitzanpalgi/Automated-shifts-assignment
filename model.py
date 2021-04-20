@@ -33,7 +33,7 @@ def init_constraints(tasks_df, operators_df):
     add_task_overlap_constrains(shifts_model, x_mat, operators, tasks)
     add_operator_capacity_constraint_not_weekend(shifts_model, x_mat, operators, tasks, MAX_CAPACITY_NOT_WEEKEND,
                                                 MIN_CAPACITY_NOT_WEEKEND)
-    add_operator_capacity_constraint_weekend(shifts_model, x_mat, operators, tasks)
+    add_operator_capacity_constraint_weekend(shifts_model, x_mat, operators, tasks, INCREASE_MAX_SOFASHIM)
     add_operator_min_per_month_constraint(shifts_model, x_mat, operators, tasks)
     add_weekly_capacity_constraint(shifts_model, x_mat, s_weekly_capacity, operators, tasks, MAX_WEEKLY_CAPACITY)
     add_variety_constraint(shifts_model, x_mat, s_variety, operators, tasks)
@@ -111,12 +111,12 @@ def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks,
         ) >= operator["MAX"] * min_config, f'min capacity-({operator_id})'
 
 
-def add_operator_capacity_constraint_weekend(model, x_mat, operators, tasks):
+def add_operator_capacity_constraint_weekend(model, x_mat, operators, tasks, INCREASE_MAX_SOFASHIM):
     for operator_id, operator in operators:
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
             is_operator_capable(operator, task) and is_task_holiday(task)
-        ) <= operator["MAX_Sofashim"], f'capacity-weekend-({operator_id})'
+        ) <= operator["MAX_Sofashim"] * INCREASE_MAX_SOFASHIM, f'capacity-weekend-({operator_id})'
 
 
 def add_operator_capacity_constraint_nights(model, x_mat, operators, tasks, max_config):

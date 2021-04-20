@@ -7,3 +7,6 @@ MAX_WEEKLY_CAPACITY = 0.5
 
 # add_operator_capacity_constraint_nights
 MAX_NIGHT_CAPACITY = 1.2
+
+# add_operator_capacity_constraint_weekend
+INCREASE_MAX_SOFASHIM = 1.01

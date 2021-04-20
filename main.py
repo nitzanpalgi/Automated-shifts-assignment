@@ -28,7 +28,9 @@ if __name__ == "__main__":
         try:
             final_df.T.to_excel(OUTPUT_PATH)
         except:
-            print("Close output file!")
+            for x in range(30):
+                print("Close output file!")
+            x = input('press something')
             final_df.T.to_excel(OUTPUT_PATH)
 
         color_cells(OUTPUT_PATH, color_dict)
