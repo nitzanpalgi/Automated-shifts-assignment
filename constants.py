@@ -10,3 +10,6 @@ MAX_NIGHT_CAPACITY = 1.2
 
 # add_operator_capacity_constraint_weekend
 INCREASE_MAX_SOFASHIM = 1.01
+
+# add_operator_capacity_constraint_weekend
+INCREASE_MAX_SOFASHIM = 1.01

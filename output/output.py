@@ -54,7 +54,7 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
                 cell_y = task_name.split("&")[1]
                 if ("_" in task_name):
                     cell_y = task_name.split("_")[0].split("&")[1]
-                cell_y=int(cell_y)
+                cell_y = int(cell_y)
                 nextDay = tasks['start_time'][cell_y] + timedelta(days=1)
                 next_day_start_time = str(nextDay).split(' ')[0]
 
@@ -66,28 +66,28 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
                 elif 'night' in task_name:
                     if (nextDay.weekday() != 4):
                         df.at[operator_name, next_day_start_time] = 'MALAM'
-    for index,row in operators.iterrows():
-        df.at[row['name'],'pazam']=row['MAX']
+    for index, row in operators.iterrows():
+        df.at[row['name'], 'pazam'] = row['MAX']
         # df.at[operator['name']]
     colors_dict = create_colors_dict(tasks_df_colors)
 
-
     df = df.sort_index(1)
     add_statistics(shifts_model, df, operators, tasks)
-    # df = df.sort_values(by='pazam',ascending=False)
-    # df = df.drop('pazam',axis='columns')
+    df = df.sort_values(by='pazam', ascending=False)
+    df = df.drop('pazam', axis='columns')
     return df, colors_dict
-    
+
+
 def remove_cell_sign(task_name):
-    if "_"not in task_name:
+    if "_" not in task_name:
         return task_name.split("&")[0]
     split_tasks = task_name.split("_")
-    new_name= ""
-    for  i in range (len(split_tasks)):
-        if i< len(split_tasks)-1:
-            new_name+=split_tasks[i].split("&")[0]+"_"
+    new_name = ""
+    for i in range(len(split_tasks)):
+        if i < len(split_tasks) - 1:
+            new_name += split_tasks[i].split("&")[0] + "_"
         else:
-            new_name+=split_tasks[i].split("&")[0]
+            new_name += split_tasks[i].split("&")[0]
     return new_name
 
 
@@ -113,9 +113,10 @@ def create_shift_dict(shifts_model, tasks, operators, DB_path):
             if by_date_dict.get(task_start_time) == None:
                 by_date_dict[task_start_time] = {}
             if by_date_dict[task_start_time].get(operator_name) == None:
-                by_date_dict[task_start_time][operator_name] = task_name+"&"+str(cell_y)
+                by_date_dict[task_start_time][operator_name] = task_name + "&" + str(cell_y)
             else:
-                by_date_dict[task_start_time][operator_name] = by_date_dict[task_start_time][operator_name]+"_"+task_name+"&"+str(cell_y)
+                by_date_dict[task_start_time][operator_name] = by_date_dict[task_start_time][
+                                                                   operator_name] + "_" + task_name + "&" + str(cell_y)
             # if by_date_dict.get(task_start_time)
     return by_date_dict
 
@@ -125,7 +126,7 @@ def create_colors_dict(color_df):
     colors_dict = {}
     for i in range(len(colors_dict_from_df["name"])):
         colors_dict[colors_dict_from_df["name"][i]
-                    ] = colors_dict_from_df["color"][i][1:]
+        ] = colors_dict_from_df["color"][i][1:]
     return colors_dict
 
 
