@@ -74,3 +74,7 @@ def is_task_night(task):
 
 def is_task_in_group(task, group):
     return task["compat_group"] == group["name"]
+
+
+def is_task_in_a_day(task,day):
+    return task["start_time"].date()==day
