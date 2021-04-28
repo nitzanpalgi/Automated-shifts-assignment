@@ -3,7 +3,9 @@ from utils.date_utils import get_days_in_current_month
 from datetime import timedelta, date
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
-from openpyxl.styles import Color, PatternFill, Fill, Font, Border, Alignment
+from openpyxl.styles import Color, PatternFill, Fill, Font, Border, Alignment, Side
+from openpyxl.styles.borders import BORDER_THICK, BORDER_MEDIUMDASHED
+
 import datetime
 
 from output.statistics import add_statistics
@@ -127,13 +129,43 @@ def create_colors_dict(color_df):
     return colors_dict
 
 
-def color_cells(file_path, color_dict):
+def color_cells(file_path, color_dict, operators):
     new_book = Workbook()
     new_sheet = new_book.active
     book = load_workbook(file_path)
     ws = book.worksheets[0]
-    min_row = int(ws.min_row)
-    max_row = int(ws.max_row)
+
+    color_tasks(color_dict, new_sheet, ws)
+
+    color_unwanted_dates(new_sheet, ws, operators)
+
+    return new_book.save('./output/Butzi.xlsx')
+
+
+def color_unwanted_dates(new_sheet, ws, operators):
+    oper_names = [col[0].value for col in ws.columns]
+    for _, operator in operators.iterrows():
+        red_color = '00FF0000'
+        oper_id = oper_names.index(operator['name'])
+        for unwanted_date in str(operator["Not evening"]).split(',') + str(operator["Not task"]).split(','):
+            if unwanted_date == 'nan':
+                continue
+            border_type = BORDER_THICK if unwanted_date in str(operator["Not task"]).split(',') else BORDER_MEDIUMDASHED
+            red_border = Border(
+                left=Side(border_style=border_type, color=red_color),
+                right=Side(border_style=border_type, color=red_color),
+                top=Side(border_style=border_type, color=red_color),
+                bottom=Side(border_style=border_type, color=red_color)
+            )
+
+            cell_to_color = ws.cell(row=int(unwanted_date) + 1, column=oper_id + 1)
+            new_cell = new_sheet.cell(row=cell_to_color.row, column=cell_to_color.column, value=cell_to_color.value)
+            new_cell.border = red_border
+            if new_cell.value != "MALAM":
+                new_cell.font = Font(color=red_color, bold=True)
+
+
+def color_tasks(color_dict, new_sheet, ws):
     for col in ws:
         for cell in col:
             try:
@@ -160,5 +192,3 @@ def color_cells(file_path, color_dict):
                     new_cell.font = Font(bold=True)
             except:
                 pass
-
-    return new_book.save('./output/Butzi.xlsx')
