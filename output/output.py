@@ -1,12 +1,9 @@
 import pandas as pd
-import numpy as np
-from Modules import dataImporter
-from functions import *
+from utils.date_utils import get_days_in_current_month
 from datetime import timedelta, date
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
 from openpyxl.styles import Color, PatternFill, Fill, Font, Border, Alignment
-from openpyxl.cell import Cell
 import datetime
 
 from output.statistics import add_statistics

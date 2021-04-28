@@ -1,8 +1,8 @@
 import pandas as pd
 from pandas import DataFrame
 from datetime import timedelta, datetime
-from functions import get_days_in_current_month
-from numpy import random, sum, ceil
+from utils.date_utils import get_days_in_current_month
+from numpy import sum
 
 
 # Turn tasks list into a task DataFrame
@@ -35,15 +35,17 @@ def format_tasks_list(tasks):
 def US_day_to_IL_day(day):
     return ((day + 1) % 7) + 1
 
+
 def create_task(row_data, day):
     date_time_str = f'{day} {row_data["start-hour"]}'
     start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
     end_time = start_time + timedelta(hours=row_data['time'])
     new_task = [start_time, end_time, row_data['name'], row_data['cost'], row_data['Compatible'],
-                row_data['min_per_month'], row_data['id'], row_data['type'], 
+                row_data['min_per_month'], row_data['id'], row_data['type'],
                 row_data['is_sofash'], row_data['compat_group']]
 
     return new_task
+
 
 # Handle row and add to task_list
 def distribute_tasks_in_day(row_data):
@@ -60,6 +62,7 @@ def distribute_tasks_in_day(row_data):
 
     return tasks_in_day
 
+
 def distribute_tasks_manual(row_data, specific_tasks_data):
     task_name = row_data['name']
     new_manual_tasks = []
@@ -72,6 +75,7 @@ def distribute_tasks_manual(row_data, specific_tasks_data):
                 new_task = create_task(row_data, day)
                 new_manual_tasks.append(new_task)
     return new_manual_tasks
+
 
 # Spread tasks in month according to each task data
 def distribute_tasks_in_month(tasks_data, specific_tasks_data):
@@ -101,8 +105,7 @@ def import_data_from_excel(path):
 
     operators_df = pd.read_excel(path, sheet_name="Operators")
 
-    # Temp remove recalculation of capacity
-    # operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
+    operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
 
     global task_types_df, compatible_tasks_groups_df
     calc_task_types_df(task_definition_df, tasks_df)
@@ -115,10 +118,11 @@ def import_data_from_excel(path):
 
 def get_task_types_df():
     return task_types_df
-    
+
 
 def get_compatible_tasks_groups_df():
     return compatible_tasks_groups_df
+
 
 def calc_task_types_df(data: DataFrame, all_tasks):
     task_types_df = data.drop_duplicates(subset=['type'])[['min_per_month', 'type', 'cost']]
