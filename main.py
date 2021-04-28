@@ -1,8 +1,7 @@
 from model import init_constraints
-from output.output import convert_to_readable_df,color_cells
+from output.output import convert_to_readable_df, color_cells
 from Modules.dataImporter import import_data_from_excel
 import time
-
 
 DATA_PATH = 'DATA/DB.xlsx'
 OUTPUT_PATH = './output/Butzi.xlsx'
@@ -33,6 +32,6 @@ if __name__ == "__main__":
             x = input('press something')
             final_df.T.to_excel(OUTPUT_PATH)
 
-        color_cells(OUTPUT_PATH, color_dict)
+        color_cells(OUTPUT_PATH, color_dict, operators)
     else:
         print("DAMN! no feasable solution found")
