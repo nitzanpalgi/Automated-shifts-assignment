@@ -53,7 +53,7 @@ def init_constraints(tasks_df, operators_df):
 
 def get_operator_task_cost(operator, task):
     if dont_want_task(operator, task):
-        return (operator["pazam"] ** 2) * (task["cost"] + 10)
+        return (operator["pazam"] ** 2) * (task["cost"] + 100)
     else:
         return (operator["pazam"] ** 2) * task["cost"]
 
@@ -136,14 +136,14 @@ def add_operator_capacity_constraint_not_weekend(model, x_mat, operators, tasks,
     for operator_id, operator in operators:
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
-            is_operator_capable(operator, task) and not is_task_holiday(task)
+            is_operator_capable(operator, task)
         ) <= max(operator["MAX"] + max_config,
                  get_minimal_capacity_of_operator(operator)), f'max capacity-({operator_id})'
 
     for operator_id, operator in operators:
         model += xsum(
             task["cost"] * x_mat[operator_id][task_id] for task_id, task in tasks if
-            is_operator_capable(operator, task) and not is_task_holiday(task)
+            is_operator_capable(operator, task)
         ) >= operator["MAX"] - min_config, f'min capacity-({operator_id})'
 
 
@@ -179,14 +179,11 @@ def add_variety_constraint(model, x_mat, slack_variables, operators, tasks, task
     for operator_id, operator in operators:
         relevant_tasks = [taskType for _, taskType in task_types if is_operator_qualified(operator, taskType)]
 
-        # target_number_of_tasks_per_type = 3 # operator["MAX"] / sum([task["cost"] for task in relevant_tasks])
-        target_number_of_tasks = operator["MAX"] / \
-                                 np.mean([task["cost"] for task in relevant_tasks])
+        target_number_of_tasks = (operator["MAX"] - operator["MAX_Sofashim"]) / np.mean([task["cost"] for task in relevant_tasks])
         task_freq_modifier = sum(task['freq'] for task in relevant_tasks)
 
         for taskType in relevant_tasks:
-            target_number_of_tasks_per_type = target_number_of_tasks * \
-                                              taskType['freq'] / task_freq_modifier
+            target_number_of_tasks_per_type = target_number_of_tasks * taskType['freq'] / task_freq_modifier
             model += xsum(x_mat[operator_id][task_id] for task_id, task in tasks if
                           (is_operator_capable(operator, task) and task["type"] == taskType['type'])) \
                      >= target_number_of_tasks_per_type - 1 - slack_variables[
@@ -206,7 +203,7 @@ def add_weekly_capacity_constraint(model, x_mat, slack_variables, operators, tas
         for operator_id, operator in operators:
             model += xsum(
                 task["cost"] * x_mat[operator_id][task_id] for task_id, task in relevant_tasks
-                if is_operator_capable(operator, task) and not is_task_holiday(task)
+                if is_operator_capable(operator, task)
             ) >= math.floor(operator["MAX"] * max_config) - slack_variables[operator_id][
                          week_id], f'weekly-capacity-({operator_id},{week_id}))'
 

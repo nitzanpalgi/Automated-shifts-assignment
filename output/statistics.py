@@ -23,10 +23,8 @@ def add_capacity_stats(shifts_model, assignment_mat: DataFrame, operators, tasks
 
     for oper_index, operator in operators:
         taken_tasks_by_operator = tasks.iloc[taken_tasks_per_operator[oper_index]]
-        taken_work_week_capacity = sum(taken_tasks_by_operator[taken_tasks_by_operator["is_weekend"] == 0]['cost'])
+        taken_work_week_capacity = sum(taken_tasks_by_operator['cost'])
         taken_weekend_capacity = sum(taken_tasks_by_operator[taken_tasks_by_operator["is_weekend"] == 1]['cost'])
-        # capacities += [f"taken work week capacity: {taken_work_week_capacity}, target capacity {operator['MAX']}\n"
-        #                f"taken weekend capacity: {taken_weekend_capacity}, target capacity {operator['MAX_Sofashim']}"]
 
         capacities += [taken_work_week_capacity]
         target_capacities += [operator['MAX']]

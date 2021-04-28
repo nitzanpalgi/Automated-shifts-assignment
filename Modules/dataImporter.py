@@ -88,7 +88,7 @@ def distribute_tasks_in_month(tasks_data, specific_tasks_data):
 
 def recalculate_operators_capacity(operators, tasks):
     capacity_sum = sum(operators["MAX"])
-    tasks_cost_sum = sum(tasks[tasks["is_weekend"] == 0]["cost"])
+    tasks_cost_sum = sum(tasks["cost"])
 
     return operators["MAX"] * (tasks_cost_sum / capacity_sum)
 
