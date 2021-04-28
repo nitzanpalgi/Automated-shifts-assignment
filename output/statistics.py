@@ -1,7 +1,7 @@
 from pandas import DataFrame
 import numpy as np
 from collections import defaultdict
-from functions import dont_want_task
+from utils.operator_utils import dont_want_task
 
 
 def add_statistics(shifts_model, assignment_mat: DataFrame, operators_df: DataFrame, tasks: DataFrame):
