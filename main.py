@@ -1,5 +1,7 @@
 from model import init_constraints
 from output.output import convert_to_readable_df, color_cells
+from output.tasks_sheets import add_tasks_sheets
+from utils.model_utils import get_tasks_assignee
 from Modules.dataImporter import import_data_from_excel
 import time
 
@@ -20,6 +22,7 @@ if __name__ == "__main__":
 
     if shifts_model.num_solutions:
         print(f'objective value {shifts_model.objective_value}')
+        tasks['assignee'] = get_tasks_assignee(shifts_model, tasks)
         final_df_with_data = convert_to_readable_df(shifts_model, tasks, operators, DATA_PATH)
         final_df = final_df_with_data[0]
         color_dict = final_df_with_data[1]
@@ -33,5 +36,7 @@ if __name__ == "__main__":
             final_df.T.to_excel(OUTPUT_PATH)
 
         color_cells(OUTPUT_PATH, color_dict, operators)
+        add_tasks_sheets(OUTPUT_PATH, tasks, operators)
+
     else:
         print("DAMN! no feasable solution found")
