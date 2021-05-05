@@ -1,7 +1,7 @@
 from pandas import DataFrame
 import numpy as np
-from collections import defaultdict
 from utils.operator_utils import dont_want_task
+from utils.model_utils import get_taken_tasks_per_operator
 
 
 def add_statistics(shifts_model, assignment_mat: DataFrame, operators_df: DataFrame, tasks: DataFrame):
@@ -43,16 +43,6 @@ def add_capacity_stats(shifts_model, assignment_mat: DataFrame, operators, tasks
     assignment_mat['capacities grade'] = np.array(grade_capacities)[sorted_permutation]
     assignment_mat['weekend capacities grade'] = np.array(grade_weekend_capacities)[sorted_permutation]
     assignment_mat['Total grades'] = np.array(total_grade)[sorted_permutation]
-
-
-def get_taken_tasks_per_operator(shifts_model):
-    taken_tasks_per_operator = defaultdict(list)
-    for v in shifts_model.vars:
-        if v.name[0] == 'x' and v.x > 0:
-            oper_id = int(v.name.split(',')[0][2:])
-            task_id = int(v.name.split(',')[1][:-1])
-            taken_tasks_per_operator[oper_id].append(task_id)
-    return taken_tasks_per_operator
 
 
 def calc_grade(top, bottom):

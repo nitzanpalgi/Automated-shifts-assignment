@@ -22,3 +22,7 @@ def get_days_in_week_in_current_month():
     weeks = calendar.monthcalendar(year, month)
     days_in_week = [count_nonzero(week) for week in weeks]
     return days_in_week
+
+
+def us_day_to_il_day(day):
+    return (day + 1) % 7

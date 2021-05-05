@@ -1,7 +1,7 @@
 import pandas as pd
 from pandas import DataFrame
 from datetime import timedelta, datetime
-from utils.date_utils import get_days_in_current_month
+from utils.date_utils import get_days_in_current_month ,us_day_to_il_day
 from numpy import sum
 
 
@@ -32,10 +32,6 @@ def format_tasks_list(tasks):
     })
 
 
-def US_day_to_IL_day(day):
-    return ((day + 1) % 7) + 1
-
-
 def create_task(row_data, day):
     date_time_str = f'{day} {row_data["start-hour"]}'
     start_time = datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S')
@@ -53,7 +49,7 @@ def distribute_tasks_in_day(row_data):
     for day in get_days_in_current_month():
         # if random.rand() <= row_data['probability']:
         if row_data['is_autofill']:
-            if str(US_day_to_IL_day(day.weekday())) in str(row_data['days_in_week']):
+            if str(us_day_to_il_day(day.weekday()) + 1) in str(row_data['days_in_week']):
                 new_task = create_task(row_data, day)
                 tasks_in_day.append(new_task)
             else:
