@@ -79,7 +79,7 @@ def add_bakut_sheet(file_path, tasks_df, operators_df):
                                     column_to_edit=7)
     assign_operators_to_tasks_cells(bakut_worksheet, tasks_df.loc[tasks_df.name == 'Hamishi - bakut night 2'],
                                     operators_df, column_to_edit=7)
-    assign_operators_to_tasks_cells(bakut_worksheet, tasks_df.loc[tasks_df.name == 'Sofash bakut night 1'],
+    assign_operators_to_tasks_cells(bakut_worksheet, tasks_df.loc[tasks_df.name == 'Sofash bakut night 2'],
                                     operators_df, column_to_edit=7, is_weekend=True)
 
     blacken_empty_cells(bakut_worksheet)
