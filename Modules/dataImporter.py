@@ -1,10 +1,11 @@
 import pandas as pd
+import numpy as np
 from pandas import DataFrame
 from datetime import timedelta, datetime
-from utils.date_utils import get_days_in_current_month ,us_day_to_il_day
-from numpy import sum
+from utils.date_utils import get_days_in_current_month, us_day_to_il_day, update_holiday_array
 
 
+# Turn tasks list into a task DataFrame
 # Turn tasks list into a task DataFrame
 def format_tasks_list(tasks):
     start_time = [task[0] for task in tasks]
@@ -50,6 +51,9 @@ def distribute_tasks_in_day(row_data):
         # if random.rand() <= row_data['probability']:
         if row_data['is_autofill']:
             if str(us_day_to_il_day(day.weekday()) + 1) in str(row_data['days_in_week']):
+                if str(row_data['exclude dates']) != 'nan' and day.day in np.array(row_data['exclude dates'].split(','),
+                                                                                   dtype=int):
+                    continue
                 new_task = create_task(row_data, day)
                 tasks_in_day.append(new_task)
             else:
@@ -103,10 +107,13 @@ def import_data_from_excel(path):
 
     operators_df["MAX"] = recalculate_operators_capacity(operators_df, tasks_df)
 
-    global task_types_df, compatible_tasks_groups_df
+    global task_types_df, compatible_tasks_groups_df, holidays_df
     calc_task_types_df(task_definition_df, tasks_df)
 
     compatible_tasks_groups_df = pd.read_excel(path, sheet_name="Task Groups")
+
+    update_holiday_array(pd.read_excel(path, sheet_name="Holidays"))
+
     task_types_df = calc_task_types_df(task_definition_df, tasks_df)
 
     return tasks_df, operators_df
