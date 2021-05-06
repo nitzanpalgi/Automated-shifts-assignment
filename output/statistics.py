@@ -1,7 +1,7 @@
 from pandas import DataFrame
 import numpy as np
-from utils.operator_utils import dont_want_task
 from utils.model_utils import get_taken_tasks_per_operator
+from utils.stats_utils import calc_grade, get_operator_unwanted_tasks, get_permutation_by_name
 
 
 def add_statistics(shifts_model, assignment_mat: DataFrame, operators_df: DataFrame, tasks: DataFrame):
@@ -45,30 +45,13 @@ def add_capacity_stats(shifts_model, assignment_mat: DataFrame, operators, tasks
     assignment_mat['Total grades'] = np.array(total_grade)[sorted_permutation]
 
 
-def calc_grade(top, bottom):
-    if bottom == 0:
-        return 1
-    return top / bottom
-
-
-def get_permutation_by_name(assignment_mat, operators):
-    operators_names = [oper['name'] for _, oper in operators]
-    assignment_mat_names = list(assignment_mat.index)
-
-    operators_sorted_perm = np.argsort(operators_names)
-    assignment_mat_sorted_perm = np.argsort(np.argsort(assignment_mat_names))
-    return operators_sorted_perm[assignment_mat_sorted_perm]
-
-
 def add_unwanted_tasks_stats(shifts_model, assignment_mat: DataFrame, operators, tasks: DataFrame):
     unwanted_evenings_stats = []
 
     taken_tasks_per_operator = get_taken_tasks_per_operator(shifts_model)
 
     for oper_index, operator in operators:
-        taken_tasks_by_operator = tasks.iloc[taken_tasks_per_operator[oper_index]]
-        unwanted_tasks_df = taken_tasks_by_operator.loc[
-            taken_tasks_by_operator.apply(lambda task: dont_want_task(operator, task), axis=1)]
+        unwanted_tasks_df = get_operator_unwanted_tasks(oper_index, operator, taken_tasks_per_operator, tasks)
         string_to_print = '\n'.join(
             f'got unwanted evening: {unwanted_task["name"]} at {unwanted_task["start_time"]}' for _, unwanted_task in
             unwanted_tasks_df.iterrows())

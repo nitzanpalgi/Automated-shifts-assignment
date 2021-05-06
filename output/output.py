@@ -1,5 +1,7 @@
 import pandas as pd
-from utils.date_utils import get_days_in_current_month
+from utils.date_utils import get_days_in_current_month, FIRST_DAY_OF_THE_MONTH_IS_SATURDAY
+from utils.model_utils import get_taken_tasks_per_operator
+from utils.stats_utils import get_operator_unwanted_tasks
 from datetime import timedelta, date
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
@@ -129,7 +131,7 @@ def create_colors_dict(color_df):
     return colors_dict
 
 
-def color_cells(file_path, color_dict, operators):
+def color_cells(file_path, shifts_model, color_dict, operators, tasks):
     new_book = Workbook()
     new_sheet = new_book.active
     book = load_workbook(file_path)
@@ -137,16 +139,18 @@ def color_cells(file_path, color_dict, operators):
 
     color_tasks(color_dict, new_sheet, ws)
 
-    color_unwanted_dates(new_sheet, ws, operators)
+    color_unwanted_dates(new_sheet, ws, shifts_model, operators, tasks)
 
     return new_book.save('./output/Butzi.xlsx')
 
 
-def color_unwanted_dates(new_sheet, ws, operators):
+def color_unwanted_dates(new_sheet, ws, shifts_model, operators, tasks):
     oper_names = [col[0].value for col in ws.columns]
-    for _, operator in operators.iterrows():
+    taken_tasks_per_operator = get_taken_tasks_per_operator(shifts_model)
+    for oper_index, operator in operators.iterrows():
         red_color = '00FF0000'
         oper_id = oper_names.index(operator['name'])
+        unwanted_tasks_df = get_operator_unwanted_tasks(oper_index, operator, taken_tasks_per_operator, tasks)
         for unwanted_date in str(operator["Not evening"]).split(',') + str(operator["Not task"]).split(','):
             if unwanted_date == 'nan':
                 continue
@@ -158,11 +162,15 @@ def color_unwanted_dates(new_sheet, ws, operators):
                 bottom=Side(border_style=border_type, color=red_color)
             )
 
-            cell_to_color = ws.cell(row=int(unwanted_date) + 1, column=oper_id + 1)
+            cell_to_color = ws.cell(row=int(unwanted_date) + 1 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY,
+                                    column=oper_id + 1)
             new_cell = new_sheet.cell(row=cell_to_color.row, column=cell_to_color.column, value=cell_to_color.value)
             new_cell.border = red_border
-            if new_cell.value != "MALAM":
-                new_cell.font = Font(color=red_color, bold=True)
+            if new_cell.value:
+                for task_name in new_cell.value.split('_'):
+                    if task_name in list(unwanted_tasks_df['name']):
+                        new_cell.font = Font(color=red_color, bold=True)
+                        continue
 
 
 def color_tasks(color_dict, new_sheet, ws):

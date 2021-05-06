@@ -35,7 +35,7 @@ if __name__ == "__main__":
             x = input('press something')
             final_df.T.to_excel(OUTPUT_PATH)
 
-        color_cells(OUTPUT_PATH, color_dict, operators)
+        color_cells(OUTPUT_PATH, shifts_model, color_dict, operators, tasks)
         add_tasks_sheets(OUTPUT_PATH, tasks, operators)
 
     else:

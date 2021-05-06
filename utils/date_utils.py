@@ -11,7 +11,11 @@ def get_days_in_current_month():
     if NEXT_MONTH:
         month += 1
     num_days = calendar.monthrange(year, month)[1]
-    return [datetime.date(year, month, day) for day in range(1, num_days + 1)]
+    all_days_in_month = [datetime.date(year, month, day) for day in range(1, num_days + 1)]
+    if us_day_to_il_day(all_days_in_month[0].weekday()) == 6:
+        all_days_in_month = all_days_in_month[1:]
+
+    return all_days_in_month
 
 
 def get_days_in_week_in_current_month():
@@ -26,3 +30,10 @@ def get_days_in_week_in_current_month():
 
 def us_day_to_il_day(day):
     return (day + 1) % 7
+
+
+def is_first_day_of_the_month_saturday():
+    return get_days_in_current_month()[0].day == 2
+
+
+FIRST_DAY_OF_THE_MONTH_IS_SATURDAY = is_first_day_of_the_month_saturday()

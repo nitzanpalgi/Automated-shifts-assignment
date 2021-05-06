@@ -1,7 +1,7 @@
 from openpyxl import load_workbook
 from openpyxl.styles import PatternFill
 
-from utils.date_utils import get_days_in_current_month, us_day_to_il_day
+from utils.date_utils import get_days_in_current_month, us_day_to_il_day, FIRST_DAY_OF_THE_MONTH_IS_SATURDAY
 from constants import WEEKDAYS_LIST
 
 
@@ -119,23 +119,23 @@ def add_dates_column(worksheet_to_edit, row_length):
     for date in get_days_in_current_month():
         day_name = WEEKDAYS_LIST[us_day_to_il_day(date.weekday())]
         add_weekend_color(worksheet_to_edit, date, row_length=row_length)
-        worksheet_to_edit.cell(row=date.day + 1, column=1).value = str(date)
-        worksheet_to_edit.cell(row=date.day + 1, column=2).value = day_name
+        worksheet_to_edit.cell(row=date.day + 1 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY, column=1).value = str(date)
+        worksheet_to_edit.cell(row=date.day + 1 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY, column=2).value = day_name
 
 
 def add_weekend_color(worksheet_to_edit, date, row_length):
     if us_day_to_il_day(date.weekday()) in [5, 6]:
         for column_index in range(1, row_length + 1):
-            worksheet_to_edit.cell(row=date.day + 1, column=column_index).fill = \
+            worksheet_to_edit.cell(row=date.day + 1 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY, column=column_index).fill = \
                 PatternFill(start_color="e4e4e4", end_color="e4e4e4", fill_type="solid")
 
 
 def assign_operators_to_tasks_cells(worksheet_to_edit, tasks_df, operators_df, column_to_edit, is_weekend=False):
     for _, task in tasks_df.iterrows():
-        worksheet_to_edit.cell(row=task['start_time'].day + 1, column=column_to_edit).value = \
+        worksheet_to_edit.cell(row=task['start_time'].day + 1 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY, column=column_to_edit).value = \
             operators_df.iloc[task['assignee']]['name']
         if is_weekend:
-            worksheet_to_edit.cell(row=task['start_time'].day + 2, column=column_to_edit).value = \
+            worksheet_to_edit.cell(row=task['start_time'].day + 2 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY, column=column_to_edit).value = \
                 operators_df.iloc[task['assignee']]['name']
 
 

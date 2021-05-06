@@ -3,6 +3,7 @@ from utils.task_utils import *
 from utils.operator_utils import *
 from Modules.dataImporter import get_compatible_tasks_groups_df, get_task_types_df
 from utils.date_utils import get_days_in_current_month, get_days_in_week_in_current_month
+from utils.date_utils import FIRST_DAY_OF_THE_MONTH_IS_SATURDAY
 from constants import *
 import math
 import numpy as np
@@ -32,7 +33,7 @@ def init_constraints(tasks_df, operators_df):
                   for operator_id, operator in operators
                   for week_id, days_in_week in enumerate(get_days_in_week_in_current_month())
                   ) +
-        3 * xsum(s_working_days[operator_id][day.day - 1]
+        3 * xsum(s_working_days[operator_id][day.day - 1 - int(FIRST_DAY_OF_THE_MONTH_IS_SATURDAY)]
                  for operator_id, operator in operators for day in get_days_in_current_month())
     )
 
