@@ -1,7 +1,9 @@
 import pandas as pd
-from utils.date_utils import get_days_in_current_month, FIRST_DAY_OF_THE_MONTH_IS_SATURDAY
+import numpy as np
+from utils.date_utils import get_days_in_current_month, FIRST_DAY_OF_THE_MONTH_IS_SATURDAY, get_holiday_array
 from utils.model_utils import get_taken_tasks_per_operator
 from utils.stats_utils import get_operator_unwanted_tasks
+
 from datetime import timedelta, date
 from openpyxl.reader.excel import load_workbook
 from openpyxl.workbook import Workbook
@@ -59,7 +61,7 @@ def convert_to_readable_df(shifts_model, tasks, operators, DB_path):
                 nextDay = tasks['start_time'][cell_y] + timedelta(days=1)
                 next_day_start_time = str(nextDay).split(' ')[0]
 
-                if 'Sofash' in task_name:
+                if 'Sofash' in task_name or 'holiday' in task_name:
                     df.at[operator_name, next_day_start_time] = remove_cell_sign(task_name)
                     nextDay = nextDay + timedelta(days=1)
                     next_day_start_time = str(nextDay).split(' ')[0]
@@ -189,9 +191,8 @@ def color_tasks(color_dict, new_sheet, ws):
                         start_color='e5e5e5', end_color='f5f5f5', fill_type='solid')
                 elif cell.row > 1 and (
                         datetime.datetime.strptime(
-                            ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() == 4
-                        or datetime.datetime.strptime(ws.cell(cell.row, 1, ).value,
-                                                      '%Y-%m-%d').weekday() == 5):
+                            ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() in [4, 5] or datetime.datetime.strptime(
+                            ws.cell(cell.row, 1, ).value, '%Y-%m-%d').day in get_holiday_array()):
                     new_cell.fill = PatternFill(
                         start_color="e4e4e4", end_color="e4e4e4", fill_type="solid")
                     new_cell.font = Font(bold=True)

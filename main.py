@@ -1,3 +1,4 @@
+from mip import SearchEmphasis
 from model import init_constraints
 from output.output import convert_to_readable_df, color_cells
 from output.tasks_sheets import add_tasks_sheets
@@ -15,6 +16,8 @@ if __name__ == "__main__":
     print(f'number of tasks {len(tasks)}')
 
     shifts_model = init_constraints(tasks, operators)
+
+    shifts_model.emphasis = SearchEmphasis.OPTIMALITY
 
     shifts_model.optimize(max_seconds_same_incumbent=10)
 
