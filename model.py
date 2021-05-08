@@ -70,7 +70,7 @@ def add_vars(shifts_model, operators, tasks):
 
 def add_variety_slack_vars(shifts_model, operators):
     return [
-        shifts_model.add_var(f's_variety({operator_id})', var_type=CONTINUOUS)
+        shifts_model.add_var(f's_variety({operator_id})', var_type=CONTINUOUS, ub=4)
         for operator_id, operator in operators
     ]
 

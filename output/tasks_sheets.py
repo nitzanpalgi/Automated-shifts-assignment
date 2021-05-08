@@ -53,7 +53,7 @@ def add_bakut_sheet(file_path, tasks_df, operators_df):
         'day': [],
         'bakut operator': ['bakut operator'],
         'bakut day 1': ['bakut day 1', ('Sofash bakut day 1', True), ('holiday bakut day 1', True)],
-        'bakut day 2': ['bakut day 2', ('Sofash bakut day 1', True), ('holiday bakut day 2', True)],
+        'bakut day 2': ['bakut day 2', ('Sofash bakut day 2', True), ('holiday bakut day 2', True)],
         'bakut night 1': ['bakut night 1', 'Hamishi - bakut night 1', ('Sofash bakut night 1', True),
                           ('holiday bakut night 1', True)],
         'bakut night 2': ['bakut night 2', 'Hamishi - bakut night 2', ('Sofash bakut night 2', True),
