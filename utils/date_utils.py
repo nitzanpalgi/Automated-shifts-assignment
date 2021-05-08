@@ -24,6 +24,7 @@ def get_days_in_week_in_current_month():
     year, month = current_date.year, current_date.month
     if NEXT_MONTH:
         month += 1
+    # TODO use IL weeks not US weeks
     weeks = calendar.monthcalendar(year, month)
     days_in_week = [np.count_nonzero(week) for week in weeks]
     return days_in_week

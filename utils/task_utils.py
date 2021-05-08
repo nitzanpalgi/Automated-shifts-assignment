@@ -2,6 +2,7 @@ import math
 
 
 def is_task_in_week(week_num, task):
+    # TODO fix calculation - use real weeks instead of division
     return math.floor(task["start_time"].day / 7) == week_num
 
 
