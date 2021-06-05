@@ -31,6 +31,11 @@ def dont_want_task(operator, task):
         for evening in unwanted_evenings)
 
 
+def want_task(operator, task):
+    preferred_days = [int(num) for num in str(operator['Preferred days']).split(',') if num != 'nan']
+    return task['start_time'].day in preferred_days
+
+
 def get_minimal_capacity_of_operator(operator):
     task_types = [task_type for task_type in get_task_types_df().iterrows()]
     return sum([taskType["min_per_month"] for _, taskType in task_types if is_operator_qualified(operator, taskType)])

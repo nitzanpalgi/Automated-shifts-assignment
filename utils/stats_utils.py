@@ -1,15 +1,14 @@
-from utils.operator_utils import dont_want_task
 import numpy as np
 
 
-def get_operator_unwanted_tasks(oper_index, operator, taken_tasks_per_operator, tasks):
+def get_operator_filtered_tasks(oper_index, operator, taken_tasks_per_operator, tasks, filter_method):
     taken_tasks_by_operator = tasks.iloc[taken_tasks_per_operator[oper_index]]
     if taken_tasks_by_operator.empty:
         return taken_tasks_by_operator
 
-    unwanted_tasks_df = taken_tasks_by_operator.loc[
-        taken_tasks_by_operator.apply(lambda task: dont_want_task(operator, task), axis=1)]
-    return unwanted_tasks_df
+    filtered_tasks_df = taken_tasks_by_operator.loc[
+        taken_tasks_by_operator.apply(lambda task: filter_method(operator, task), axis=1)]
+    return filtered_tasks_df
 
 
 def get_permutation_by_name(assignment_mat, operators):
