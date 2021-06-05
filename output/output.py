@@ -2,7 +2,8 @@ import pandas as pd
 import numpy as np
 from utils.date_utils import get_days_in_current_month, FIRST_DAY_OF_THE_MONTH_IS_SATURDAY, get_holiday_array
 from utils.model_utils import get_taken_tasks_per_operator
-from utils.stats_utils import get_operator_unwanted_tasks
+from utils.stats_utils import get_operator_filtered_tasks
+from utils.operator_utils import dont_want_task, want_task, is_operator_strong_no_task
 
 from datetime import timedelta, date
 from openpyxl.reader.excel import load_workbook
@@ -141,37 +142,42 @@ def color_cells(file_path, shifts_model, color_dict, operators, tasks):
 
     color_tasks(color_dict, new_sheet, ws)
 
-    color_unwanted_dates(new_sheet, ws, shifts_model, operators, tasks)
+    color_special_dates(new_sheet, ws, shifts_model, operators, tasks, color='00FF0000',
+                        special_date_name="Not evening", filter_method=dont_want_task, border_type=BORDER_MEDIUMDASHED)
+    color_special_dates(new_sheet, ws, shifts_model, operators, tasks, color='00FF0000',
+                        filter_method=is_operator_strong_no_task, special_date_name="Not task")
+    color_special_dates(new_sheet, ws, shifts_model, operators, tasks, color='0000FF00', filter_method=want_task,
+                        special_date_name="Preferred days")
 
     return new_book.save('./output/Butzi.xlsx')
 
 
-def color_unwanted_dates(new_sheet, ws, shifts_model, operators, tasks):
+def color_special_dates(new_sheet, ws, shifts_model, operators, tasks, color, special_date_name, filter_method,
+                        border_type=BORDER_THICK):
     oper_names = [col[0].value for col in ws.columns]
     taken_tasks_per_operator = get_taken_tasks_per_operator(shifts_model)
     for oper_index, operator in operators.iterrows():
-        red_color = '00FF0000'
         oper_id = oper_names.index(operator['name'])
-        unwanted_tasks_df = get_operator_unwanted_tasks(oper_index, operator, taken_tasks_per_operator, tasks)
-        for unwanted_date in str(operator["Not evening"]).split(',') + str(operator["Not task"]).split(','):
-            if unwanted_date == 'nan':
+        tasks_to_color_df = get_operator_filtered_tasks(oper_index, operator, taken_tasks_per_operator, tasks,
+                                                        filter_method=filter_method)
+        for special_date in str(operator[special_date_name]).split(','):
+            if special_date == 'nan':
                 continue
-            border_type = BORDER_THICK if unwanted_date in str(operator["Not task"]).split(',') else BORDER_MEDIUMDASHED
-            red_border = Border(
-                left=Side(border_style=border_type, color=red_color),
-                right=Side(border_style=border_type, color=red_color),
-                top=Side(border_style=border_type, color=red_color),
-                bottom=Side(border_style=border_type, color=red_color)
+            border = Border(
+                left=Side(border_style=border_type, color=color),
+                right=Side(border_style=border_type, color=color),
+                top=Side(border_style=border_type, color=color),
+                bottom=Side(border_style=border_type, color=color)
             )
 
-            cell_to_color = ws.cell(row=int(unwanted_date) + 1 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY,
+            cell_to_color = ws.cell(row=int(special_date) + 1 - FIRST_DAY_OF_THE_MONTH_IS_SATURDAY,
                                     column=oper_id + 1)
             new_cell = new_sheet.cell(row=cell_to_color.row, column=cell_to_color.column, value=cell_to_color.value)
-            new_cell.border = red_border
+            new_cell.border = border
             if new_cell.value:
                 for task_name in new_cell.value.split('_'):
-                    if task_name in list(unwanted_tasks_df['name']):
-                        new_cell.font = Font(color=red_color, bold=True)
+                    if task_name in list(tasks_to_color_df['name']):
+                        new_cell.font = Font(color=color, bold=True)
                         continue
 
 
@@ -192,7 +198,7 @@ def color_tasks(color_dict, new_sheet, ws):
                 elif cell.row > 1 and (
                         datetime.datetime.strptime(
                             ws.cell(cell.row, 1, ).value, '%Y-%m-%d').weekday() in [4, 5] or datetime.datetime.strptime(
-                            ws.cell(cell.row, 1, ).value, '%Y-%m-%d').day in get_holiday_array()):
+                    ws.cell(cell.row, 1, ).value, '%Y-%m-%d').day in get_holiday_array()):
                     new_cell.fill = PatternFill(
                         start_color="e4e4e4", end_color="e4e4e4", fill_type="solid")
                     new_cell.font = Font(bold=True)

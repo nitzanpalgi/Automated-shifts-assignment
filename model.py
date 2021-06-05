@@ -55,6 +55,8 @@ def init_constraints(tasks_df, operators_df):
 def get_operator_task_cost(operator, task):
     if dont_want_task(operator, task):
         return (operator["pazam"] ** 2) * (task["cost"] + 100)
+    elif want_task(operator, task):
+        return -100 * (operator["pazam"] ** 2) * task["cost"]
     else:
         return (operator["pazam"] ** 2) * task["cost"]
 
@@ -180,7 +182,8 @@ def add_variety_constraint(model, x_mat, slack_variables, operators, tasks, task
     for operator_id, operator in operators:
         relevant_tasks = [taskType for _, taskType in task_types if is_operator_qualified(operator, taskType)]
 
-        target_number_of_tasks = (operator["MAX"] - operator["MAX_Sofashim"]) / np.mean([task["cost"] for task in relevant_tasks])
+        target_number_of_tasks = (operator["MAX"] - operator["MAX_Sofashim"]) / np.mean(
+            [task["cost"] for task in relevant_tasks])
         task_freq_modifier = sum(task['freq'] for task in relevant_tasks)
 
         for taskType in relevant_tasks:

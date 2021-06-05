@@ -1,7 +1,8 @@
 from pandas import DataFrame
 import numpy as np
 from utils.model_utils import get_taken_tasks_per_operator
-from utils.stats_utils import calc_grade, get_operator_unwanted_tasks, get_permutation_by_name
+from utils.stats_utils import calc_grade, get_operator_filtered_tasks, get_permutation_by_name
+from utils.operator_utils import dont_want_task
 
 
 def add_statistics(shifts_model, assignment_mat: DataFrame, operators_df: DataFrame, tasks: DataFrame):
@@ -51,7 +52,8 @@ def add_unwanted_tasks_stats(shifts_model, assignment_mat: DataFrame, operators,
     taken_tasks_per_operator = get_taken_tasks_per_operator(shifts_model)
 
     for oper_index, operator in operators:
-        unwanted_tasks_df = get_operator_unwanted_tasks(oper_index, operator, taken_tasks_per_operator, tasks)
+        unwanted_tasks_df = get_operator_filtered_tasks(oper_index, operator, taken_tasks_per_operator, tasks,
+                                                        filter_method=dont_want_task)
         string_to_print = '\n'.join(
             f'got unwanted evening: {unwanted_task["name"]} at {unwanted_task["start_time"]}' for _, unwanted_task in
             unwanted_tasks_df.iterrows())
